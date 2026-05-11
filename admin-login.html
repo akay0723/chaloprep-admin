@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChaloPrep Admin Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --c-indigo: #4F46E5;
+            --c-indigo-l: #EEF2FF;
+            --c-orange: #F97316;
+            --c-slate-50: #F8FAFC;
+            --c-slate-100: #F1F5F9;
+            --c-slate-300: #CBD5E1;
+            --c-slate-400: #94A3B8;
+            --c-slate-600: #475569;
+            --c-slate-700: #334155;
+            --c-slate-800: #1E293B;
+            --c-slate-900: #0F172A;
+            --c-red: #EF4444;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, var(--c-slate-900) 0%, #1a1f3c 50%, var(--c-slate-900) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--c-slate-800);
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 0 16px;
+        }
+
+        .login-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: var(--c-orange);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: #fff;
+            font-size: 16px;
+            margin: 0 auto 16px;
+        }
+
+        .logo-text {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--c-indigo);
+            margin-bottom: 8px;
+        }
+
+        .logo-subtext {
+            font-size: 13px;
+            color: var(--c-slate-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--c-slate-800);
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--c-slate-600);
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--c-slate-600);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--c-slate-300);
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--c-slate-800);
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--c-indigo);
+            box-shadow: 0 0 0 3px var(--c-indigo-l);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--c-indigo);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #4338CA;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--c-slate-100);
+            color: var(--c-slate-600);
+            border: 1px solid var(--c-slate-300);
+        }
+
+        .btn-secondary:hover {
+            background: var(--c-slate-50);
+        }
+
+        .error-message {
+            display: none;
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: #991B1B;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            display: none;
+            background: #ECFDF5;
+            border: 1px solid #BBEAD5;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: #065F46;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .demo-info {
+            margin-top: 24px;
+            padding: 12px;
+            background: var(--c-indigo-l);
+            border-radius: 12px;
+            font-size: 12px;
+            color: #3730A3;
+            border: 1px solid #E0E7FF;
+        }
+
+        .demo-info strong {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .loading {
+            display: none;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(79, 70, 229, 0.3);
+            border-top-color: var(--c-indigo);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .logo-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-bottom: 24px;
+        }
+
+        .logo-link:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo-link" onclick="redirectHome()">
+                <div class="logo">CP</div>
+                <div>
+                    <div class="logo-text">ChaloPrep</div>
+                    <div class="logo-subtext">Admin</div>
+                </div>
+            </div>
+
+            <h1>Welcome Back</h1>
+            <p class="subtitle">Sign in to manage CAT questions</p>
+
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="admin@chaloprep.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-primary" id="loginBtn">
+                        <span id="btnText">Sign In</span>
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="fillDemoCredentials()">
+                        Demo Creds
+                    </button>
+                </div>
+            </form>
+
+            <div class="demo-info">
+                <strong>📌 Demo Credentials:</strong>
+                Email: admin@chaloprep.com<br>
+                Password: ChaloPrep@0123
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if already logged in
+        window.addEventListener('load', () => {
+            if (isAdminLoggedIn()) {
+                window.location.href = 'admin-dashboard.html';
+            }
+        });
+
+        function isAdminLoggedIn() {
+            return localStorage.getItem('adminToken') !== null;
+        }
+
+        function fillDemoCredentials() {
+            document.getElementById('email').value = 'admin@chaloprep.com';
+            document.getElementById('password').value = 'ChaloPrep@0123';
+            document.getElementById('email').focus();
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+            document.getElementById('successMessage').classList.remove('show');
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.classList.add('show');
+            document.getElementById('errorMessage').classList.remove('show');
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            // Show loading state
+            const loginBtn = document.getElementById('loginBtn');
+            const btnText = document.getElementById('btnText');
+            const originalText = btnText.textContent;
+            
+            loginBtn.classList.add('loading');
+            loginBtn.disabled = true;
+            btnText.innerHTML = '<span class="spinner"></span>Signing in...';
+
+            // Simulate API call delay
+            setTimeout(() => {
+                // Hardcoded admin credentials
+                const validEmail = 'admin@chaloprep.com';
+                const validPassword = 'ChaloPrep@0123';
+
+                if (email === validEmail && password === validPassword) {
+                    // Create admin token
+                    const token = btoa(JSON.stringify({
+                        email: email,
+                        role: 'admin',
+                        loginTime: new Date().toISOString()
+                    }));
+
+                    localStorage.setItem('adminToken', token);
+                    localStorage.setItem('adminEmail', email);
+
+                    showSuccess('Login successful! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = 'admin-dashboard.html';
+                    }, 800);
+                } else {
+                    showError('Invalid email or password. Please try again.');
+                    loginBtn.classList.remove('loading');
+                    loginBtn.disabled = false;
+                    btnText.textContent = originalText;
+                }
+            }, 600);
+        }
+
+        function redirectHome() {
+            window.location.href = 'index.html';
+        }
+
+        // Allow Enter key to submit form
+        document.getElementById('loginForm').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleLogin(e);
+            }
+        });
+    </script>
+</body>
+</html>

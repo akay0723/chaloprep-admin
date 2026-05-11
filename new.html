@@ -1,0 +1,1114 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.2/Recharts.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',sans-serif}
+:root{--c-indigo:#4F46E5;--c-indigo-l:#EEF2FF;--c-orange:#F97316;--c-orange-l:#FFF7ED;--c-emerald:#10B981;--c-emerald-l:#ECFDF5;--c-amber:#F59E0B;--c-amber-l:#FFFBEB;--c-red:#EF4444;--c-red-l:#FEF2F2;--c-slate-50:#F8FAFC;--c-slate-100:#F1F5F9;--c-slate-200:#E2E8F0;--c-slate-300:#CBD5E1;--c-slate-400:#94A3B8;--c-slate-500:#64748B;--c-slate-600:#475569;--c-slate-700:#334155;--c-slate-800:#1E293B;--c-slate-900:#0F172A}
+body{background:var(--c-slate-50);color:var(--c-slate-800);min-height:100vh}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;border-radius:12px;border:none;cursor:pointer;transition:all .18s;font-size:14px;font-family:inherit}
+.btn-primary{background:var(--c-indigo);color:#fff;padding:10px 20px}.btn-primary:hover{background:#4338CA}
+.btn-accent{background:var(--c-orange);color:#fff;padding:10px 20px}.btn-accent:hover{background:#EA6F0A}
+.btn-outline{background:transparent;color:var(--c-indigo);border:2px solid var(--c-indigo);padding:9px 19px}.btn-outline:hover{background:var(--c-indigo-l)}
+.btn-ghost{background:transparent;color:var(--c-slate-600);padding:9px 16px}.btn-ghost:hover{background:var(--c-slate-100)}
+.btn-danger{background:var(--c-red);color:#fff;padding:8px 14px}.btn-danger:hover{background:#DC2626}
+.btn-sm{font-size:12px;padding:6px 12px;border-radius:8px}
+.btn-lg{font-size:15px;padding:13px 28px;border-radius:14px}
+.btn-xl{font-size:16px;padding:16px 36px;border-radius:16px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.card{background:#fff;border-radius:20px;border:1px solid var(--c-slate-100);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
+.badge-easy{background:var(--c-emerald-l);color:#065F46}
+.badge-medium{background:var(--c-amber-l);color:#92400E}
+.badge-hard{background:var(--c-red-l);color:#991B1B}
+.badge-exam{background:var(--c-indigo-l);color:#3730A3}
+.input{width:100%;border:1.5px solid var(--c-slate-200);border-radius:12px;padding:10px 14px;font-size:14px;font-family:inherit;color:var(--c-slate-800);outline:none;transition:border .15s}
+.input:focus{border-color:var(--c-indigo)}
+.select{width:100%;border:1.5px solid var(--c-slate-200);border-radius:12px;padding:10px 14px;font-size:14px;font-family:inherit;color:var(--c-slate-800);background:#fff;outline:none;cursor:pointer}
+.select:focus{border-color:var(--c-indigo)}
+.label{display:block;font-size:12px;font-weight:700;color:var(--c-slate-600);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+/* Admin sidebar */
+.admin-wrap{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--c-slate-900);color:#fff;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:10}
+.sidebar-logo{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+.sidebar-logo-icon{width:34px;height:34px;background:var(--c-orange);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:13px}
+.sidebar-nav{padding:12px;flex:1;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;color:rgba(255,255,255,.55)}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:var(--c-indigo);color:#fff}
+.nav-icon{width:18px;text-align:center;font-size:15px}
+.admin-content{margin-left:220px;flex:1;padding:32px;min-height:100vh}
+/* Metric cards */
+.metric-card{background:#fff;border-radius:16px;border:1px solid var(--c-slate-100);padding:20px;display:flex;flex-direction:column;gap:4px}
+.metric-val{font-size:28px;font-weight:800;color:var(--c-slate-800)}
+.metric-label{font-size:11px;font-weight:700;color:var(--c-slate-400);text-transform:uppercase;letter-spacing:.5px}
+.metric-change{font-size:12px;color:var(--c-slate-400);margin-top:2px}
+.metric-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px}
+/* Page transitions */
+.page{animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* Table */
+.table{width:100%;border-collapse:collapse}
+.table th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;color:var(--c-slate-400);text-transform:uppercase;letter-spacing:.5px;background:var(--c-slate-50);border-bottom:1px solid var(--c-slate-100)}
+.table td{padding:11px 14px;font-size:13px;border-bottom:1px solid var(--c-slate-50);vertical-align:middle}
+.table tr:hover td{background:var(--c-slate-50)}
+/* Range input */
+input[type=range]{accent-color:var(--c-indigo);width:100%;height:4px}
+/* Progress bar */
+.progress{height:6px;background:var(--c-slate-100);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:var(--c-indigo);border-radius:99px;transition:width .4s}
+/* Star rating / score grade */
+.grade-a{color:#fff;background:linear-gradient(135deg,#10B981,#059669)}
+.grade-b{color:#fff;background:linear-gradient(135deg,#F59E0B,#D97706)}
+.grade-c{color:#fff;background:linear-gradient(135deg,#EF4444,#DC2626)}
+/* Chip buttons (exam/difficulty) */
+.chip{border:1.5px solid var(--c-slate-200);border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;background:#fff;color:var(--c-slate-600)}
+.chip:hover{border-color:var(--c-indigo);color:var(--c-indigo)}
+.chip.active-indigo{background:var(--c-indigo);border-color:var(--c-indigo);color:#fff}
+.chip.active-emerald{background:var(--c-emerald);border-color:var(--c-emerald);color:#fff}
+.chip.active-amber{background:var(--c-amber);border-color:var(--c-amber);color:#fff}
+.chip.active-red{background:var(--c-red);border-color:var(--c-red);color:#fff}
+/* Timer SVG */
+.timer-ring{transition:stroke-dashoffset .8s linear}
+/* Scrollable */
+.scroll-y{overflow-y:auto;max-height:300px}
+/* Notification/toast */
+.toast{position:fixed;top:20px;right:20px;background:#1E293B;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:1000;animation:slideIn .3s ease}
+@keyframes slideIn{from{transform:translateX(60px);opacity:0}to{transform:translateX(0);opacity:1}}
+/* Grid helpers */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.grid-6{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+/* Flex helpers */
+.flex{display:flex}.flex-col{flex-direction:column}.items-center{align-items:center}.items-start{align-items:flex-start}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.gap-2{gap:8px}.gap-3{gap:12px}.gap-4{gap:16px}.flex-1{flex:1}.flex-wrap{flex-wrap:wrap}
+/* Spacing */
+.p-4{padding:16px}.p-5{padding:20px}.p-6{padding:24px}.p-8{padding:32px}.p-10{padding:40px}
+.mt-1{margin-top:4px}.mt-2{margin-top:8px}.mt-3{margin-top:12px}.mt-4{margin-top:16px}.mt-6{margin-top:24px}.mt-8{margin-top:32px}.mb-2{margin-bottom:8px}.mb-3{margin-bottom:12px}.mb-4{margin-bottom:16px}.mb-6{margin-bottom:24px}.mb-8{margin-bottom:32px}
+/* Text */
+.text-xl{font-size:20px}.text-2xl{font-size:24px}.text-3xl{font-size:30px}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.text-sm{font-size:13px}.text-xs{font-size:11px}.text-slate-500{color:var(--c-slate-500)}.text-slate-400{color:var(--c-slate-400)}.text-center{text-align:center}
+/* Landing dark theme */
+.dark-page{background:linear-gradient(135deg,#0D1117 0%,#1a1f3c 50%,#0D1117 100%);color:#fff;min-height:100vh}
+.dark-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px}
+.dark-nav{border-bottom:1px solid rgba(255,255,255,.08);padding:16px 32px;display:flex;align-items:center;justify-content:space-between}
+/* Question option */
+.option-btn{width:100%;text-align:left;padding:13px 18px;border-radius:12px;border:2px solid var(--c-slate-200);background:#fff;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;color:var(--c-slate-700)}
+.option-btn:hover{border-color:var(--c-indigo);background:var(--c-indigo-l)}
+.option-btn.selected{border-color:var(--c-indigo);background:var(--c-indigo-l);color:var(--c-indigo)}
+.option-btn.correct{border-color:var(--c-emerald);background:var(--c-emerald-l);color:#065F46}
+.option-btn.wrong{border-color:var(--c-red);background:var(--c-red-l);color:#991B1B}
+.option-btn.faded{border-color:var(--c-slate-100);color:var(--c-slate-300);background:#FAFAFA}
+.option-btn:disabled{cursor:not-allowed}
+/* Donut chart legend */
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+/* Sidebar bottom */
+.sidebar-bottom{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08)}
+/* Chart wrapper */
+.chart-wrap{width:100%;overflow:hidden}
+/* Avatar */
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const {useState,useEffect,useRef,useCallback}=React;
+
+// ============ DATA ============
+const EXAMS=["CAT"];
+const SUBS={
+  JEE:["Physics","Chemistry","Mathematics"],
+  NEET:["Physics","Chemistry","Biology"],
+  UPSC:["History","Geography","Polity","Economics"],
+  CAT:["Quantitative Aptitude","Verbal Ability","Logical Reasoning"],
+  GATE:["Computer Science","Electronics","Mechanical"],
+  "SSC CGL":["General Intelligence","General Awareness","Quantitative Aptitude","English"]
+};
+const DIFF_TIME={Easy:45,Medium:30,Hard:20};
+const DIFFS=["Easy","Medium","Hard"];
+
+const QB=[
+  {id:1,exam:"JEE",subject:"Physics",topic:"Mechanics",sub:"Kinematics",d:"Easy",q:"A car starts from rest and covers 40 m in 4 s with uniform acceleration. What is its acceleration?",opts:["5 m/s²","2.5 m/s²","10 m/s²","20 m/s²"],ans:0},
+  {id:2,exam:"JEE",subject:"Physics",topic:"Mechanics",sub:"Newton's Laws",d:"Medium",q:"A 5 kg block on a rough surface (μ=0.2, g=10) is pushed with 30 N force. Find its acceleration.",opts:["4 m/s²","2 m/s²","6 m/s²","8 m/s²"],ans:0},
+  {id:3,exam:"JEE",subject:"Physics",topic:"Electricity",sub:"Ohm's Law",d:"Easy",q:"A 10 Ω resistor has 5 A flowing through it. What is the voltage across it?",opts:["50 V","2 V","0.5 V","500 V"],ans:0},
+  {id:4,exam:"JEE",subject:"Physics",topic:"Optics",sub:"Refraction",d:"Hard",q:"Light travels from glass (n=1.5) to air at 30° incidence angle. What is the refraction angle?",opts:["48.6°","30°","19.5°","60°"],ans:0},
+  {id:5,exam:"JEE",subject:"Physics",topic:"Waves",sub:"Sound",d:"Medium",q:"A sound wave has frequency 440 Hz and speed 330 m/s. What is its wavelength?",opts:["0.75 m","1.5 m","0.5 m","2 m"],ans:0},
+  {id:6,exam:"JEE",subject:"Physics",topic:"Thermodynamics",sub:"Ideal Gases",d:"Hard",q:"During an adiabatic process, which quantity is zero?",opts:["Heat exchange (Q)","Work done (W)","Internal energy change (ΔU)","Enthalpy change (ΔH)"],ans:0},
+  {id:7,exam:"JEE",subject:"Chemistry",topic:"Organic",sub:"IUPAC Nomenclature",d:"Easy",q:"What is the IUPAC name of CH₃–CH₂–OH?",opts:["Ethanol","Methanol","Propanol","Butanol"],ans:0},
+  {id:8,exam:"JEE",subject:"Chemistry",topic:"Physical",sub:"Thermodynamics",d:"Medium",q:"Which is true for a spontaneous process at constant T and P?",opts:["ΔG < 0","ΔG > 0","ΔG = 0","ΔS < 0"],ans:0},
+  {id:9,exam:"JEE",subject:"Chemistry",topic:"Inorganic",sub:"Periodic Trends",d:"Hard",q:"Which element has the highest first ionization energy among all elements?",opts:["Helium","Fluorine","Neon","Oxygen"],ans:0},
+  {id:10,exam:"JEE",subject:"Mathematics",topic:"Calculus",sub:"Limits",d:"Medium",q:"What is lim(x→0) sin(x)/x?",opts:["1","0","∞","Undefined"],ans:0},
+  {id:11,exam:"JEE",subject:"Mathematics",topic:"Algebra",sub:"Quadratic Equations",d:"Easy",q:"What are the roots of x² − 5x + 6 = 0?",opts:["2 and 3","1 and 6","−2 and −3","2 and −3"],ans:0},
+  {id:12,exam:"JEE",subject:"Mathematics",topic:"Trigonometry",sub:"Identities",d:"Easy",q:"What is the value of sin²θ + cos²θ?",opts:["1","0","2","sinθcosθ"],ans:0},
+  {id:13,exam:"JEE",subject:"Mathematics",topic:"Calculus",sub:"Derivatives",d:"Hard",q:"If f(x) = x³ − 3x² + 2x, what is f′(1)?",opts:["−1","1","2","−2"],ans:0},
+  {id:14,exam:"NEET",subject:"Biology",topic:"Cell Biology",sub:"Cell Division",d:"Easy",q:"During which phase of mitosis do chromosomes align at the cell equator?",opts:["Metaphase","Anaphase","Prophase","Telophase"],ans:0},
+  {id:15,exam:"NEET",subject:"Biology",topic:"Genetics",sub:"Mendelian",d:"Medium",q:"In Tt × Tt cross, what fraction shows the recessive phenotype?",opts:["1/4","3/4","1/2","0"],ans:0},
+  {id:16,exam:"NEET",subject:"Biology",topic:"Physiology",sub:"Digestion",d:"Easy",q:"Which enzyme in the stomach is primarily responsible for protein digestion?",opts:["Pepsin","Trypsin","Amylase","Lipase"],ans:0},
+  {id:17,exam:"NEET",subject:"Biology",topic:"Evolution",sub:"Natural Selection",d:"Hard",q:"Which of the following is NOT a direct mechanism of biological evolution?",opts:["Epigenetic inheritance","Natural selection","Genetic drift","Gene flow"],ans:0},
+  {id:18,exam:"NEET",subject:"Chemistry",topic:"Biochemistry",sub:"Biomolecules",d:"Medium",q:"Which bond holds the two complementary strands of DNA together?",opts:["Hydrogen bond","Covalent bond","Ionic bond","Peptide bond"],ans:0},
+  {id:19,exam:"NEET",subject:"Physics",topic:"Optics",sub:"Human Eye",d:"Medium",q:"Which defect of vision is corrected using a convex (converging) lens?",opts:["Hypermetropia","Myopia","Astigmatism","Presbyopia"],ans:0},
+  {id:20,exam:"UPSC",subject:"History",topic:"Modern India",sub:"Freedom Movement",d:"Easy",q:"The Dandi March (1930) was a protest against which British policy?",opts:["Salt Tax","Rowlatt Act","Jallianwala Bagh","Partition of Bengal"],ans:0},
+  {id:21,exam:"UPSC",subject:"Polity",topic:"Constitution",sub:"Fundamental Rights",d:"Medium",q:"Article 19 of the Indian Constitution deals with which right?",opts:["Freedom of Speech & Expression","Right to Equality","Right to Life","Right against Exploitation"],ans:0},
+  {id:22,exam:"UPSC",subject:"Geography",topic:"Physical Geography",sub:"Rivers",d:"Easy",q:"Which is the longest river flowing entirely within India?",opts:["Ganga","Godavari","Brahmaputra","Yamuna"],ans:0},
+  {id:23,exam:"UPSC",subject:"Economics",topic:"Macroeconomics",sub:"National Income",d:"Hard",q:"Which GDP measurement method sums value added at each stage of production?",opts:["Production / Value Added method","Expenditure method","Income method","Market price method"],ans:0},
+  {id:24,exam:"CAT",subject:"Quantitative Aptitude",topic:"Arithmetic",sub:"Percentages",d:"Easy",q:"If 20% of x = 80, then x is:",opts:["400","160","40","16"],ans:0},
+  {id:25,exam:"CAT",subject:"Quantitative Aptitude",topic:"Algebra",sub:"Inequalities",d:"Hard",q:"The solution set of |2x − 3| < 5 is:",opts:["−1 < x < 4","x < −1 or x > 4","−1 ≤ x ≤ 4","x ≤ −1"],ans:0},
+  {id:26,exam:"CAT",subject:"Verbal Ability",topic:"Vocabulary",sub:"Synonyms",d:"Medium",q:"Choose the word most similar in meaning to 'Ephemeral':",opts:["Transient","Permanent","Eternal","Robust"],ans:0},
+  {id:27,exam:"CAT",subject:"Logical Reasoning",topic:"Arrangements",sub:"Linear Seating",d:"Medium",q:"A sits left of B; B is left of C; C is left of D. Who sits second from left?",opts:["B","A","C","D"],ans:0},
+  {id:28,exam:"GATE",subject:"Computer Science",topic:"Data Structures",sub:"Trees",d:"Medium",q:"What is the height of a complete binary tree with 15 nodes?",opts:["3","4","5","2"],ans:0},
+  {id:29,exam:"GATE",subject:"Computer Science",topic:"Algorithms",sub:"Sorting",d:"Hard",q:"Which sorting algorithm has a guaranteed worst-case O(n log n) complexity?",opts:["Merge Sort","Quick Sort","Bubble Sort","Insertion Sort"],ans:0},
+  {id:30,exam:"GATE",subject:"Computer Science",topic:"Operating Systems",sub:"Scheduling",d:"Medium",q:"Which CPU scheduling algorithm can cause starvation of low-priority processes?",opts:["Priority Scheduling","Round Robin","FCFS","SJF Non-preemptive"],ans:0},
+  {id:31,exam:"SSC CGL",subject:"General Awareness",topic:"Science",sub:"Basic Physics",d:"Easy",q:"What is the SI unit of electric current?",opts:["Ampere","Volt","Ohm","Watt"],ans:0},
+  {id:32,exam:"SSC CGL",subject:"Quantitative Aptitude",topic:"Arithmetic",sub:"Profit & Loss",d:"Easy",q:"Cost price = ₹200, Selling price = ₹250. What is the profit percentage?",opts:["25%","20%","50%","15%"],ans:0},
+  {id:33,exam:"SSC CGL",subject:"English",topic:"Grammar",sub:"Tenses",d:"Easy",q:"Choose the grammatically correct sentence:",opts:["She has been working here for 5 years","She is working here since 5 years","She worked here for 5 years ago","She have worked here for 5 years"],ans:0},
+  {id:34,exam:"SSC CGL",subject:"General Intelligence",topic:"Reasoning",sub:"Analogies",d:"Medium",q:"Doctor : Hospital :: Teacher : ?",opts:["School","Class","Education","Student"],ans:0},
+  {id:35,exam:"NEET",subject:"Biology",topic:"Ecology",sub:"Food Chain",d:"Easy",q:"Which trophic level has the highest energy in an ecosystem?",opts:["Producers (Plants)","Primary Consumers","Secondary Consumers","Decomposers"],ans:0},
+];
+
+// Admin mock data
+const ATTEMPT_DATA=[{d:"Mon",v:142},{d:"Tue",v:198},{d:"Wed",v:167},{d:"Thu",v:234},{d:"Fri",v:312},{d:"Sat",v:445},{d:"Sun",v:389}];
+const ACC_DATA=[{n:"Physics",v:64,c:"#6366f1"},{n:"Chemistry",v:71,c:"#f97316"},{n:"Mathematics",v:58,c:"#10b981"},{n:"Biology",v:75,c:"#f59e0b"},{n:"Others",v:69,c:"#ec4899"}];
+const TOP_STUDENTS=[{n:"Arjun Sharma",e:"JEE",acc:94.2,t:23},{n:"Priya Patel",e:"NEET",acc:91.7,t:31},{n:"Rohit Kumar",e:"CAT",acc:89.3,t:18},{n:"Sneha Reddy",e:"UPSC",acc:87.8,t:42},{n:"Vikram Singh",e:"GATE",acc:85.1,t:27}];
+
+// ============ ADAPTIVE LOGIC ============
+function getNextDiff(curr,correct,taken,allowed){
+  const i=DIFFS.indexOf(curr);
+  if(correct===null) return DIFFS[Math.max(0,i-1)];
+  if(correct){
+    return taken/allowed<0.5 ? DIFFS[Math.min(2,i+1)] : curr;
+  }
+  return DIFFS[Math.max(0,i-1)];
+}
+
+function buildQueue(exam,subj,count,startD){
+  let pool=QB.filter(q=>q.exam===exam&&q.subject===subj);
+  if(pool.length===0) pool=QB.filter(q=>q.exam===exam);
+  if(pool.length===0) pool=[...QB];
+  const byD={Easy:[],Medium:[],Hard:[]};
+  pool.forEach(q=>byD[q.d].push({...q}));
+  const result=[];
+  let curD=startD;
+  for(let i=0;i<count;i++){
+    let bucket=byD[curD];
+    if(bucket.length===0){
+      bucket=byD[DIFFS[0]]||pool;
+    }
+    const q={...bucket[i%bucket.length],aD:curD};
+    result.push(q);
+  }
+  return result;
+}
+
+function getNextQ(pool,diff){
+  const bucket=pool.filter(q=>q.d===diff);
+  if(bucket.length===0) return {...pool[Math.floor(Math.random()*pool.length)],aD:diff};
+  const idx=Math.floor(Math.random()*bucket.length);
+  return {...bucket[idx],aD:diff};
+}
+
+// ============ COMPONENTS ============
+
+// LANDING PAGE
+function LandingPage({go}){
+  return React.createElement('div',{className:'dark-page page'},
+
+    // Nav
+    React.createElement('nav',{className:'dark-nav'},
+      React.createElement('div',{className:'flex items-center gap-3',onClick:()=>go('landing'),style:{cursor:'pointer'}},
+        React.createElement('div',{style:{width:36,height:36,background:'var(--c-orange)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800,color:'#fff',fontSize:13}},'CP'),
+        React.createElement('span',{style:{fontWeight:800,fontSize:20,color:'#fff'}},'ChaloPrep')
+      ),
+      React.createElement('div',{className:'flex gap-3'},
+        React.createElement('button',{className:'btn btn-ghost',style:{color:'rgba(255,255,255,.7)'},onClick:()=>go('auth')},'Log In'),
+        React.createElement('button',{className:'btn btn-accent',onClick:()=>go('auth')},'Get Started →')
+      )
+    ),
+
+    // Hero
+    React.createElement('div',{style:{maxWidth:900,margin:'0 auto',padding:'80px 32px 60px',textAlign:'center'}},
+      React.createElement('div',{style:{display:'inline-flex',alignItems:'center',gap:8,background:'rgba(99,102,241,.2)',border:'1px solid rgba(99,102,241,.4)',borderRadius:99,padding:'6px 16px',fontSize:12,color:'#a5b4fc',marginBottom:24}},
+        React.createElement('span',{style:{width:8,height:8,background:'#4ade80',borderRadius:'50%',animation:'pulse 2s infinite'}}),
+        'AI-Powered Adaptive Learning Platform'
+      ),
+      React.createElement('h1',{style:{fontSize:62,fontWeight:800,lineHeight:1.1,marginBottom:20,color:'#fff'}},
+        'Crack Your ',
+        React.createElement('span',{style:{background:'linear-gradient(90deg,#f97316,#ec4899)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}},'Dream Exam'),
+        React.createElement('br'),
+        'with AI Precision'
+      ),
+      React.createElement('p',{style:{fontSize:18,color:'rgba(255,255,255,.6)',maxWidth:560,margin:'0 auto 32px',lineHeight:1.7}},
+        "ChaloPrep's adaptive AI engine personalizes every test to your skill level, identifies gaps, and accelerates your prep for India's toughest exams."
+      ),
+      React.createElement('div',{className:'flex gap-3 justify-center'},
+        React.createElement('button',{className:'btn btn-accent btn-xl',onClick:()=>go('auth')},'Start Free Test →'),
+        React.createElement('button',{className:'btn btn-outline btn-xl',style:{borderColor:'rgba(255,255,255,.3)',color:'#fff'},onClick:()=>go('auth')},'Watch Demo')
+      ),
+      React.createElement('div',{className:'flex flex-wrap gap-2 justify-center mt-8'},
+        EXAMS.map(e=>React.createElement('span',{key:e,style:{background:'rgba(255,255,255,.1)',border:'1px solid rgba(255,255,255,.15)',color:'rgba(255,255,255,.9)',padding:'8px 16px',borderRadius:12,fontSize:13,fontWeight:700}},e))
+      )
+    ),
+
+
+    // Features
+    React.createElement('div',{style:{maxWidth:900,margin:'0 auto',padding:'64px 32px'}},
+      React.createElement('h2',{style:{fontSize:36,fontWeight:800,textAlign:'center',color:'#fff',marginBottom:8}},
+        'Everything You Need to ',
+        React.createElement('span',{style:{color:'var(--c-orange)'}},'Succeed')
+      ),
+      React.createElement('p',{style:{textAlign:'center',color:'rgba(255,255,255,.45)',marginBottom:48,fontSize:15}},
+        'Intelligent tools designed for serious exam aspirants'
+      ),
+      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16}},
+        [['🧠','AI-Adaptive Testing','Questions adjust to your performance in real-time'],['📊','Deep Analytics','Track accuracy, time, and difficulty after every test'],['🎯','Targeted Insights','AI identifies weak topics and suggests study plans'],['⚡','CAT Prep','Master Quantitative Aptitude, Verbal Ability, and Logical Reasoning']].map(([ic,t,d])=>
+          React.createElement('div',{key:t,className:'dark-card',style:{padding:24}},
+            React.createElement('div',{style:{fontSize:32,marginBottom:12}},ic),
+            React.createElement('div',{style:{fontWeight:700,color:'#fff',fontSize:15,marginBottom:6}},t),
+            React.createElement('div',{style:{fontSize:12,color:'rgba(255,255,255,.45)',lineHeight:1.6}},d)
+          )
+        )
+      )
+    ),
+
+    // CTA
+    React.createElement('div',{style:{maxWidth:600,margin:'0 auto 40px',padding:'0 32px',textAlign:'center'}},
+      React.createElement('div',{style:{background:'linear-gradient(135deg,#4F46E5,#7C3AED)',borderRadius:28,padding:52}},
+        React.createElement('h2',{style:{fontSize:32,fontWeight:800,color:'#fff',marginBottom:12}},'Ready to Start?'),
+        React.createElement('p',{style:{color:'rgba(255,255,255,.65)',marginBottom:24,fontSize:15}},
+          "Join thousands of students already preparing smarter with ChaloPrep."
+        ),
+        React.createElement('button',{className:'btn btn-accent btn-xl',onClick:()=>go('auth')},'Create Free Account →')
+      )
+    ),
+  );
+}
+
+// AUTH PAGE
+function AuthPage({go}){
+  const [tab,setTab]=useState('login');
+  const [form,setForm]=useState({name:'',email:'',pass:'',role:'student'});
+  const u=k=>v=>setForm({...form,[k]:v});
+  const handleSubmit=()=>{
+    if(form.role==='admin') go('adminDashboard');
+    else go('userHome');
+  };
+  return React.createElement('div',{style:{minHeight:'100vh',background:'linear-gradient(135deg,#0D1117,#1a1f3c)',display:'flex',alignItems:'center',justifyContent:'center',padding:16},className:'page'},
+    React.createElement('div',{style:{width:'100%',maxWidth:420}},
+      React.createElement('div',{style:{textAlign:'center',marginBottom:28}},
+        React.createElement('div',{style:{display:'inline-flex',alignItems:'center',gap:8,marginBottom:8,cursor:'pointer'},onClick:()=>go('landing')},
+          React.createElement('div',{style:{width:38,height:38,background:'var(--c-orange)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800,color:'#fff',fontSize:13}},'CP'),
+          React.createElement('span',{style:{fontWeight:800,fontSize:22,color:'#fff'}},'ChaloPrep')
+        ),
+        React.createElement('p',{style:{color:'rgba(255,255,255,.45)',fontSize:13}},'Your AI-powered exam companion')
+      ),
+      React.createElement('div',{style:{background:'#fff',borderRadius:24,padding:32}},
+        React.createElement('div',{style:{display:'flex',background:'var(--c-slate-100)',borderRadius:12,padding:4,marginBottom:24}},
+          ['login','signup'].map(t=>React.createElement('button',{key:t,onClick:()=>setTab(t),style:{flex:1,padding:'8px 0',borderRadius:10,border:'none',fontWeight:700,fontSize:13,cursor:'pointer',transition:'all .15s',background:tab===t?'#fff':'transparent',color:tab===t?'var(--c-indigo)':'var(--c-slate-500)',boxShadow:tab===t?'0 1px 3px rgba(0,0,0,.1)':'none',fontFamily:'inherit'}},t==='login'?'Log In':'Sign Up'))
+        ),
+        React.createElement('div',{style:{marginBottom:14}},
+          React.createElement('label',{className:'label'},'User Type'),
+          React.createElement('select',{className:'select',value:form.role,onChange:e=>u('role')(e.target.value)},
+            React.createElement('option',{value:'student'},'Student'),
+            React.createElement('option',{value:'admin'},'Admin')
+          )
+        ),
+        tab==='signup'&&React.createElement('div',{style:{marginBottom:14}},
+          React.createElement('label',{className:'label'},'Full Name'),
+          React.createElement('input',{className:'input',placeholder:'Arjun Sharma',value:form.name,onChange:e=>u('name')(e.target.value)})
+        ),
+        React.createElement('div',{style:{marginBottom:14}},
+          React.createElement('label',{className:'label'},'Email Address'),
+          React.createElement('input',{className:'input',type:'email',placeholder:'you@example.com',value:form.email,onChange:e=>u('email')(e.target.value)})
+        ),
+        React.createElement('div',{style:{marginBottom:20}},
+          React.createElement('label',{className:'label'},'Password'),
+          React.createElement('input',{className:'input',type:'password',placeholder:'••••••••',value:form.pass,onChange:e=>u('pass')(e.target.value)})
+        ),
+        React.createElement('button',{className:'btn btn-primary btn-lg',style:{width:'100%',marginBottom:16},onClick:handleSubmit},tab==='login'?'Log In →':'Create Account →'),
+        React.createElement('p',{style:{textAlign:'center',fontSize:12,color:'var(--c-slate-400)'}},
+          tab==='login'?'No account? ':'Have an account? ',
+          React.createElement('span',{onClick:()=>setTab(tab==='login'?'signup':'login'),style:{color:'var(--c-indigo)',fontWeight:700,cursor:'pointer'}},tab==='login'?'Sign up':'Log in')
+        )
+      )
+    )
+  );
+}
+
+// ROLE SELECT
+function RoleSelectPage({go}){
+  return React.createElement('div',{style:{minHeight:'100vh',background:'var(--c-slate-50)',display:'flex',alignItems:'center',justifyContent:'center',padding:24},className:'page'},
+    React.createElement('div',{style:{width:'100%',maxWidth:580}},
+      React.createElement('div',{style:{textAlign:'center',marginBottom:36}},
+        React.createElement('div',{style:{display:'inline-flex',alignItems:'center',gap:8,marginBottom:12,cursor:'pointer'},onClick:()=>go('landing')},
+          React.createElement('div',{style:{width:36,height:36,background:'var(--c-orange)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800,color:'#fff',fontSize:13}},'CP'),
+          React.createElement('span',{style:{fontWeight:800,fontSize:22,color:'var(--c-slate-800)'}},'ChaloPrep')
+        ),
+        React.createElement('h2',{style:{fontSize:26,fontWeight:800,color:'var(--c-slate-800)',marginBottom:6}},'How will you use ChaloPrep?'),
+        React.createElement('p',{style:{color:'var(--c-slate-400)',fontSize:14}},'Choose your role to get started')
+      ),
+      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}},
+        [{role:'user',label:'Student',emoji:'🎓',desc:'Take adaptive tests, track your performance, and get AI-powered study recommendations.',color:'#4F46E5'},{role:'admin',label:'Admin',emoji:'⚙️',desc:'Manage questions, monitor student performance, and access platform-wide analytics.',color:'#F97316'}].map(({role,label,emoji,desc,color})=>
+          React.createElement('button',{key:role,onClick:()=>go(role==='user'?'userHome':'adminDashboard'),style:{background:'#fff',border:'2px solid var(--c-slate-100)',borderRadius:20,padding:28,textAlign:'left',cursor:'pointer',transition:'all .18s',fontFamily:'inherit'},onMouseEnter:e=>{e.currentTarget.style.borderColor=color;e.currentTarget.style.boxShadow=`0 8px 24px ${color}22`},onMouseLeave:e=>{e.currentTarget.style.borderColor='var(--c-slate-100)';e.currentTarget.style.boxShadow='none'}},
+            React.createElement('div',{style:{width:48,height:48,background:color+'18',borderRadius:14,display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,marginBottom:14}},emoji),
+            React.createElement('div',{style:{fontWeight:800,fontSize:18,color:'var(--c-slate-800)',marginBottom:8}},label),
+            React.createElement('div',{style:{fontSize:13,color:'var(--c-slate-400)',lineHeight:1.6,marginBottom:14}},desc),
+            React.createElement('div',{style:{fontSize:13,fontWeight:700,color:color}},'Continue as '+label+' →')
+          )
+        )
+      )
+    )
+  );
+}
+
+// USER HOME
+function UserHomePage({go,onStart}){
+  const availableExams=['CAT'];
+  const [cfg,setCfg]=useState({exam:'',subj:'',n:10,diff:'Medium'});
+  const s=SUBS[cfg.exam]||[];
+  const ready=cfg.exam&&cfg.subj;
+  return React.createElement('div',{style:{minHeight:'100vh',background:'var(--c-slate-50)'},className:'page'},
+    React.createElement('header',{style:{background:'#fff',borderBottom:'1px solid var(--c-slate-100)',padding:'14px 28px',display:'flex',alignItems:'center',justifyContent:'space-between'}},
+      React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,cursor:'pointer'},onClick:()=>go('landing')},
+        React.createElement('div',{style:{width:30,height:30,background:'var(--c-orange)',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800,color:'#fff',fontSize:11}},'CP'),
+        React.createElement('span',{style:{fontWeight:800,fontSize:17,color:'var(--c-slate-800)'}},'ChaloPrep')
+      ),
+      React.createElement('div',{style:{display:'flex',alignItems:'center',gap:16}},
+        React.createElement('span',{style:{fontSize:13,color:'var(--c-slate-500)'}},React.createElement('strong',null,'Welcome, Arjun'),' 👋'),
+        React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>go('landing')},'Logout')
+      )
+    ),
+    React.createElement('div',{style:{maxWidth:740,margin:'0 auto',padding:'36px 24px'}},
+      React.createElement('div',{style:{marginBottom:28}},
+        React.createElement('h1',{style:{fontSize:26,fontWeight:800,color:'var(--c-slate-800)'}},'Configure Your Test'),
+        React.createElement('p',{style:{color:'var(--c-slate-400)',fontSize:14,marginTop:4}},'Set up an adaptive AI-powered test tailored to your level')
+      ),
+      React.createElement('div',{className:'card p-8'},
+        React.createElement('div',{className:'grid-2'},
+          // Exam selection
+          React.createElement('div',null,
+            React.createElement('label',{className:'label'},'Select Exam'),
+            React.createElement('div',{className:'grid-3',style:{marginTop:8,gridTemplateColumns:'1fr'}},
+              availableExams.map(e=>React.createElement('button',{key:e,onClick:()=>setCfg({...cfg,exam:e,subj:''}),className:'chip'+(cfg.exam===e?' active-indigo':''),style:{width:'100%'}},e))
+            )
+          ),
+          // Subject
+          React.createElement('div',null,
+            React.createElement('label',{className:'label'},'Select Subject'),
+            s.length>0?
+              React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6,marginTop:8}},
+                s.map(sub=>React.createElement('button',{key:sub,onClick:()=>setCfg({...cfg,subj:sub}),style:{textAlign:'left',padding:'9px 14px',borderRadius:10,border:`1.5px solid ${cfg.subj===sub?'var(--c-indigo)':'var(--c-slate-200)'}`,background:cfg.subj===sub?'var(--c-indigo-l)':'#fff',color:cfg.subj===sub?'var(--c-indigo)':'var(--c-slate-600)',fontWeight:cfg.subj===sub?700:500,fontSize:13,cursor:'pointer',fontFamily:'inherit'}},sub))
+              ):
+              React.createElement('div',{style:{height:120,display:'flex',alignItems:'center',justifyContent:'center',border:'2px dashed var(--c-slate-200)',borderRadius:12,marginTop:8,color:'var(--c-slate-400)',fontSize:13}},'Select an exam first')
+          ),
+          // Questions count
+          React.createElement('div',null,
+            React.createElement('label',{className:'label'},'Questions: ',React.createElement('span',{style:{color:'var(--c-indigo)',textTransform:'none',letterSpacing:0,fontSize:14}},cfg.n)),
+            React.createElement('input',{type:'range',min:5,max:25,step:5,value:cfg.n,onChange:e=>setCfg({...cfg,n:Number(e.target.value)}),style:{width:'100%',marginTop:10}}),
+            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--c-slate-400)',marginTop:4}},[5,10,15,20,25].map(v=>React.createElement('span',{key:v},v)))
+          ),
+          // Difficulty
+          React.createElement('div',null,
+            React.createElement('label',{className:'label'},'Starting Difficulty'),
+            React.createElement('div',{style:{display:'flex',gap:8,marginTop:8}},
+              [{v:'Easy',cls:'active-emerald'},{v:'Medium',cls:'active-amber'},{v:'Hard',cls:'active-red'}].map(({v,cls})=>
+                React.createElement('button',{key:v,onClick:()=>setCfg({...cfg,diff:v}),className:'chip flex-1'+(cfg.diff===v?' '+cls:''),style:{textAlign:'center'}},v)
+              )
+            )
+          )
+        ),
+        ready&&React.createElement('div',{style:{marginTop:20,padding:'14px 18px',background:'var(--c-indigo-l)',borderRadius:12,border:'1px solid #C7D2FE'}},
+          React.createElement('p',{style:{fontSize:13,color:'var(--c-indigo)',fontWeight:700}},'📋 ',cfg.n,' ',cfg.diff,' questions · ',cfg.exam,' → ',cfg.subj),
+          React.createElement('p',{style:{fontSize:11,color:'#818CF8',marginTop:3}},'AI will dynamically adapt difficulty based on your performance')
+        ),
+        React.createElement('button',{className:'btn btn-accent btn-lg',style:{width:'100%',marginTop:20},disabled:!ready,onClick:()=>{onStart(cfg);go('instructions')}},'Start Test →')
+      ),
+      // Stats row
+      React.createElement('div',{className:'grid-3',style:{marginTop:20}},
+        [['🏆','Best Score','87%'],['⚡','Tests Taken','12'],['🎯','Avg Accuracy','71%']].map(([ic,l,v])=>
+          React.createElement('div',{key:l,className:'card p-5 text-center'},
+            React.createElement('div',{style:{fontSize:24,marginBottom:4}},ic),
+            React.createElement('div',{style:{fontSize:22,fontWeight:800,color:'var(--c-slate-800)'}},'',v),
+            React.createElement('div',{style:{fontSize:11,color:'var(--c-slate-400)'}},l)
+          )
+        )
+      )
+    )
+  );
+}
+
+// INSTRUCTIONS
+function InstructionsPage({cfg,go}){
+  return React.createElement('div',{style:{minHeight:'100vh',background:'var(--c-slate-50)',display:'flex',alignItems:'center',justifyContent:'center',padding:20},className:'page'},
+    React.createElement('div',{style:{width:'100%',maxWidth:560}},
+      React.createElement('div',{className:'card p-8'},
+        React.createElement('div',{style:{textAlign:'center',marginBottom:24}},
+          React.createElement('div',{style:{fontSize:48,marginBottom:8}},'📋'),
+          React.createElement('h2',{style:{fontSize:22,fontWeight:800,color:'var(--c-slate-800)'}},'Test Instructions'),
+          React.createElement('p',{style:{color:'var(--c-slate-400)',fontSize:13,marginTop:4}},(cfg?.exam||''),' · ',(cfg?.subj||''),' · ',(cfg?.n||0),' Questions')
+        ),
+        [{bg:'var(--c-indigo-l)',border:'#C7D2FE',title:'⏱ Timer Rules',tc:'#3730A3',items:['Easy questions: 45 seconds','Medium questions: 30 seconds','Hard questions: 20 seconds','Auto-submit when timer expires']},{bg:'var(--c-amber-l)',border:'#FDE68A',title:'📊 Marking Scheme',tc:'#92400E',items:['Correct Answer: +4 marks','Wrong Answer: −1 mark','Skipped: 0 marks (no penalty)']},{bg:'var(--c-emerald-l)',border:'#A7F3D0',title:'🧠 AI Adaptive Difficulty',tc:'#065F46',items:['Correct + Fast → Next question harder','Correct + Slow → Same difficulty','Wrong or Skipped → Easier question next']},{bg:'#F8FAFC',border:'var(--c-slate-200)',title:'📌 General Rules',tc:'var(--c-slate-600)',items:['Read each question carefully before answering','You can skip a question and move on','Once submitted, answers cannot be changed']}].map(({bg,border,title,tc,items})=>
+          React.createElement('div',{key:title,style:{background:bg,border:`1px solid ${border}`,borderRadius:12,padding:14,marginBottom:10}},
+            React.createElement('div',{style:{fontWeight:700,color:tc,marginBottom:6,fontSize:13}},title),
+            items.map(item=>React.createElement('div',{key:item,style:{fontSize:12,color:tc,marginBottom:3,paddingLeft:12}},React.createElement('span',{style:{marginRight:6}},'•'),item))
+          )
+        ),
+        React.createElement('div',{style:{display:'flex',gap:10,marginTop:20}},
+          React.createElement('button',{className:'btn btn-ghost',onClick:()=>go('userHome')},'← Back'),
+          React.createElement('button',{className:'btn btn-accent btn-lg',style:{flex:1},onClick:()=>go('test')},'Begin Test →')
+        )
+      )
+    )
+  );
+}
+
+// TEST ENGINE
+function TestEnginePage({cfg,onDone}){
+  const pool=useRef(QB.filter(q=>q.exam===cfg.exam&&q.subject===cfg.subj));
+  if(pool.current.length===0) pool.current=QB.filter(q=>q.exam===cfg.exam);
+  if(pool.current.length===0) pool.current=[...QB];
+  const [qs,setQs]=useState(()=>buildQueue(cfg.exam,cfg.subj,cfg.n,cfg.diff));
+  const [cur,setCur]=useState(0);
+  const [sel,setSel]=useState(null);
+  const [done,setDone]=useState(false);
+  const [tLeft,setTLeft]=useState(DIFF_TIME[cfg.diff]);
+  const [results,setResults]=useState([]);
+  const [dPath,setDPath]=useState([cfg.diff]);
+  const startT=useRef(Date.now());
+  const timedOut=useRef(false);
+  const q=qs[cur];
+  const timeAllowed=DIFF_TIME[q?.aD||'Medium'];
+
+  useEffect(()=>{
+    if(!q) return;
+    setTLeft(DIFF_TIME[q.aD]);
+    setSel(null);
+    setDone(false);
+    timedOut.current=false;
+    startT.current=Date.now();
+  },[cur]);
+
+  useEffect(()=>{
+    if(done) return;
+    const iv=setInterval(()=>setTLeft(t=>Math.max(0,t-1)),1000);
+    return()=>clearInterval(iv);
+  },[cur,done]);
+
+  useEffect(()=>{
+    if(tLeft===0&&!done&&!timedOut.current){
+      timedOut.current=true;
+      submitAnswer(null,true);
+    }
+  },[tLeft,done]);
+
+  function submitAnswer(answer,timeout=false){
+    if(done) return;
+    setDone(true);
+    const taken=Math.round((Date.now()-startT.current)/1000);
+    const correct=timeout?false:(answer===null?null:answer===q.ans);
+    const res={qid:q.id,q:q.q,topic:q.topic,sub:q.sub,diff:q.aD,sel:answer,ans:q.ans,correct,taken,allowed:timeAllowed,skipped:answer===null&&!timeout,timeout};
+    const newResults=[...results,res];
+    const nextD=getNextDiff(q.aD,timeout?false:(answer===null?null:answer===q.ans),taken,timeAllowed);
+    setResults(newResults);
+    setDPath(p=>[...p,nextD]);
+    if(cur+1>=qs.length){
+      setTimeout(()=>onDone(newResults,[...dPath,nextD]),700);
+    } else {
+      setTimeout(()=>{
+        const updQ=[...qs];
+        const nq=getNextQ(pool.current,nextD);
+        updQ[cur+1]={...nq,aD:nextD};
+        setQs(updQ);
+        setCur(c=>c+1);
+      },600);
+    }
+  }
+
+  if(!q) return null;
+  const pct=(tLeft/timeAllowed)*100;
+  const timerColor=pct>50?'#10B981':pct>20?'#F59E0B':'#EF4444';
+  const diffColor={Easy:'#10B981',Medium:'#F59E0B',Hard:'#EF4444'}[q.aD];
+  const C=2*Math.PI*28;
+  const lastR=results[results.length-1];
+
+  return React.createElement('div',{style:{minHeight:'100vh',background:'var(--c-slate-50)',display:'flex',alignItems:'center',justifyContent:'center',padding:16},className:'page'},
+    React.createElement('div',{style:{width:'100%',maxWidth:580}},
+      // Progress
+      React.createElement('div',{style:{marginBottom:12}},
+        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}},
+          React.createElement('span',{style:{fontSize:13,color:'var(--c-slate-500)',fontWeight:600}},'Question ',cur+1,' of ',qs.length),
+          React.createElement('span',{style:{fontSize:11,fontWeight:700,padding:'3px 10px',borderRadius:99,background:diffColor+'22',color:diffColor}},q.aD)
+        ),
+        React.createElement('div',{className:'progress'},
+          React.createElement('div',{className:'progress-fill',style:{width:`${(cur/qs.length)*100}%`}})
+        )
+      ),
+      React.createElement('div',{className:'card p-8'},
+        // Timer + meta
+        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:16,marginBottom:20}},
+          React.createElement('div',{style:{position:'relative',width:64,height:64,flexShrink:0}},
+            React.createElement('svg',{width:64,height:64,viewBox:'0 0 64 64',style:{transform:'rotate(-90deg)'}},
+              React.createElement('circle',{cx:32,cy:32,r:28,fill:'none',stroke:'var(--c-slate-100)',strokeWidth:6}),
+              React.createElement('circle',{cx:32,cy:32,r:28,fill:'none',stroke:timerColor,strokeWidth:6,strokeDasharray:C,strokeDashoffset:C*(1-pct/100),className:'timer-ring'})
+            ),
+            React.createElement('div',{style:{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:800,color:timerColor}},tLeft,'s')
+          ),
+          React.createElement('div',null,
+            React.createElement('p',{style:{fontSize:11,color:'var(--c-slate-400)',fontWeight:600}},q.topic,' · ',q.sub),
+            React.createElement('p',{style:{fontSize:11,color:'var(--c-slate-300)'}},cfg.exam,' Exam')
+          )
+        ),
+        // Question
+        React.createElement('h2',{style:{fontSize:16,fontWeight:700,color:'var(--c-slate-800)',marginBottom:20,lineHeight:1.6}},cur+1,'. ',q.q),
+        // Options
+        React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:10,marginBottom:20}},
+          q.opts.map((opt,i)=>{
+            let cls='option-btn';
+            if(done){
+              if(i===q.ans) cls+=' correct';
+              else if(i===sel&&i!==q.ans) cls+=' wrong';
+              else cls+=' faded';
+            } else if(sel===i) cls+=' selected';
+            return React.createElement('button',{key:i,className:cls,disabled:done,onClick:()=>!done&&setSel(i)},
+              React.createElement('strong',null,String.fromCharCode(65+i),'. '),opt
+            );
+          })
+        ),
+        // Action buttons
+        !done&&React.createElement('div',{style:{display:'flex',gap:10}},
+          React.createElement('button',{className:'btn btn-ghost',onClick:()=>submitAnswer(null,false)},'Skip →'),
+          React.createElement('button',{className:'btn btn-primary',style:{flex:1},disabled:sel===null,onClick:()=>submitAnswer(sel)},'Submit Answer')
+        ),
+        done&&React.createElement('div',{style:{padding:'12px 16px',borderRadius:12,textAlign:'center',fontSize:13,fontWeight:700,background:lastR?.correct?'var(--c-emerald-l)':lastR?.skipped?'var(--c-slate-50)':'var(--c-red-l)',color:lastR?.correct?'#065F46':lastR?.skipped?'var(--c-slate-500)':'#991B1B'}},
+          lastR?.correct?'✅ Correct! Moving to next question...':lastR?.skipped?'⏭ Skipped — reducing difficulty...':'❌ Incorrect — reducing difficulty...'
+        )
+      )
+    )
+  );
+}
+
+// RESULTS PAGE
+function ResultsPage({results,dPath,cfg,go}){
+  const correct=results.filter(r=>r.correct===true).length;
+  const wrong=results.filter(r=>r.correct===false&&!r.skipped&&!r.timeout).length;
+  const skipped=results.filter(r=>r.skipped).length;
+  const total=results.length;
+  const score=correct*4-wrong;
+  const maxScore=total*4;
+  const acc=total>0?Math.round(correct/total*100):0;
+  const avgT=total>0?Math.round(results.reduce((s,r)=>s+r.taken,0)/total):0;
+
+  const diffData=dPath.slice(0,total+1).map((d,i)=>({q:'Q'+(i+1),v:DIFFS.indexOf(d)+1}));
+  const pieData=[{name:'Correct',value:correct,fill:'#10B981'},{name:'Wrong',value:wrong,fill:'#EF4444'},{name:'Skipped',value:skipped,fill:'#94A3B8'}];
+
+  const grade=acc>=80?'A':acc>=60?'B':'C';
+  const gradeBg=acc>=80?'linear-gradient(135deg,#10B981,#059669)':acc>=60?'linear-gradient(135deg,#F59E0B,#D97706)':'linear-gradient(135deg,#EF4444,#DC2626)';
+
+  const insights=[];
+  if(acc>=80) insights.push({t:'🌟 Excellent performance! You\'re well above average.',c:'var(--c-indigo-l)',tc:'#3730A3'});
+  else if(acc>=60) insights.push({t:'👍 Good performance. Focus on weak topics for improvement.',c:'var(--c-amber-l)',tc:'#92400E'});
+  else insights.push({t:'📚 Keep practicing! Consistent revision will improve your score significantly.',c:'var(--c-red-l)',tc:'#991B1B'});
+  if(avgT<15) insights.push({t:'⚡ You answered very quickly — make sure to read each question carefully.',c:'var(--c-amber-l)',tc:'#92400E'});
+  else if(avgT>35) insights.push({t:'⏱ Time management needs work. Practice with stricter timers daily.',c:'var(--c-amber-l)',tc:'#92400E'});
+  if(correct===total) insights.push({t:'🔥 Perfect score! You answered everything correctly!',c:'var(--c-emerald-l)',tc:'#065F46'});
+
+  const R=window.Recharts;
+  return React.createElement('div',{style:{minHeight:'100vh',background:'var(--c-slate-50)',padding:'24px 16px'},className:'page'},
+    React.createElement('div',{style:{maxWidth:760,margin:'0 auto'}},
+      React.createElement('div',{style:{textAlign:'center',marginBottom:20}},
+        React.createElement('h1',{style:{fontSize:26,fontWeight:800,color:'var(--c-slate-800)'}},'Test Complete! 🎉'),
+        React.createElement('p',{style:{color:'var(--c-slate-400)',fontSize:13}},(cfg?.exam||'')+' · '+(cfg?.subj||''))
+      ),
+      // Score card
+      React.createElement('div',{style:{background:gradeBg,borderRadius:24,padding:32,textAlign:'center',color:'#fff',marginBottom:16}},
+        React.createElement('div',{style:{fontSize:60,fontWeight:800,lineHeight:1}},grade),
+        React.createElement('div',{style:{fontSize:26,fontWeight:700,marginTop:6}},score,'/',maxScore,' pts'),
+        React.createElement('div',{style:{fontSize:16,opacity:.85,marginTop:4}},acc,'% Accuracy')
+      ),
+      // Stats grid
+      React.createElement('div',{className:'grid-4',style:{marginBottom:16}},
+        [{ic:'✅',l:'Correct',v:correct},{ic:'❌',l:'Wrong',v:wrong},{ic:'⏭',l:'Skipped',v:skipped},{ic:'⏱',l:'Avg Time',v:avgT+'s'}].map(({ic,l,v})=>
+          React.createElement('div',{key:l,className:'card p-5 text-center'},
+            React.createElement('div',{style:{fontSize:20,marginBottom:2}},ic),
+            React.createElement('div',{style:{fontSize:22,fontWeight:800,color:'var(--c-slate-800)'}},'',v),
+            React.createElement('div',{style:{fontSize:11,color:'var(--c-slate-400)'}},l)
+          )
+        )
+      ),
+      // Charts
+      React.createElement('div',{className:'grid-2',style:{marginBottom:16}},
+        React.createElement('div',{className:'card p-6'},
+          React.createElement('div',{style:{fontWeight:700,color:'var(--c-slate-700)',marginBottom:12,fontSize:14}},'Difficulty Progression'),
+          R?React.createElement(R.ResponsiveContainer,{width:'100%',height:150},
+            React.createElement(R.AreaChart,{data:diffData},
+              React.createElement(R.CartesianGrid,{strokeDasharray:'3 3',stroke:'#f1f5f9'}),
+              React.createElement(R.XAxis,{dataKey:'q',tick:{fontSize:10}}),
+              React.createElement(R.YAxis,{domain:[0,3],ticks:[1,2,3],tickFormatter:v=>['','Easy','Med','Hard'][v]||'',tick:{fontSize:9}}),
+              React.createElement(R.Tooltip,{formatter:v=>['Easy','Medium','Hard'][v-1]||v}),
+              React.createElement(R.Area,{type:'monotone',dataKey:'v',stroke:'#4F46E5',fill:'#EEF2FF',strokeWidth:2})
+            )
+          ):React.createElement('p',{style:{color:'var(--c-slate-400)',fontSize:12}},'Chart loading...')
+        ),
+        React.createElement('div',{className:'card p-6'},
+          React.createElement('div',{style:{fontWeight:700,color:'var(--c-slate-700)',marginBottom:12,fontSize:14}},'Result Breakdown'),
+          R?React.createElement(R.ResponsiveContainer,{width:'100%',height:150},
+            React.createElement(R.PieChart,null,
+              React.createElement(R.Pie,{data:pieData.filter(d=>d.value>0),cx:'50%',cy:'50%',outerRadius:55,dataKey:'value'},
+                pieData.filter(d=>d.value>0).map((d,i)=>React.createElement(R.Cell,{key:i,fill:d.fill}))
+              ),
+              React.createElement(R.Tooltip,null),
+              React.createElement(R.Legend,{iconSize:8,wrapperStyle:{fontSize:11}})
+            )
+          ):null
+        )
+      ),
+      // AI Insights
+      React.createElement('div',{className:'card p-6',style:{marginBottom:16}},
+        React.createElement('div',{style:{fontWeight:700,color:'var(--c-slate-700)',marginBottom:12,fontSize:14}},'🧠 AI Insights'),
+        insights.map((ins,i)=>React.createElement('div',{key:i,style:{background:ins.c,padding:'10px 14px',borderRadius:10,fontSize:13,color:ins.tc,marginBottom:6,fontWeight:500}},ins.t))
+      ),
+      // Q Review
+      React.createElement('div',{className:'card p-6',style:{marginBottom:16}},
+        React.createElement('div',{style:{fontWeight:700,color:'var(--c-slate-700)',marginBottom:12,fontSize:14}},'Question Review'),
+        React.createElement('div',{className:'scroll-y',style:{display:'flex',flexDirection:'column',gap:6}},
+          results.map((r,i)=>React.createElement('div',{key:i,style:{display:'flex',alignItems:'center',gap:10,padding:'8px 12px',borderRadius:10,background:r.correct?'var(--c-emerald-l)':r.skipped?'var(--c-slate-50)':'var(--c-red-l)',fontSize:12}},
+            React.createElement('span',{style:{fontWeight:700,color:'var(--c-slate-400)',width:24,flexShrink:0}},'Q'+(i+1)),
+            React.createElement('span',{style:{flex:1,color:'var(--c-slate-700)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},r.q),
+            React.createElement('span',{style:{fontSize:11,color:'var(--c-slate-400)',flexShrink:0}},r.diff,' · ',r.taken,'s'),
+            React.createElement('span',null,r.correct?'✅':r.skipped?'⏭':'❌')
+          ))
+        )
+      ),
+      React.createElement('div',{style:{display:'flex',gap:10}},
+        React.createElement('button',{className:'btn btn-outline btn-lg',style:{flex:1},onClick:()=>go('userHome')},'Take Another Test'),
+        React.createElement('button',{className:'btn btn-accent btn-lg',style:{flex:1},onClick:()=>go('recommendations')},'Get AI Recommendations →')
+      )
+    )
+  );
+}
+
+// RECOMMENDATIONS
+function RecommendationsPage({results,cfg,go}){
+  const [step,setStep]=useState('ask');
+  const correct=results.filter(r=>r.correct).length;
+  const acc=Math.round(correct/results.length*100);
+  const topicMap={};
+  results.forEach(r=>{
+    if(!topicMap[r.sub]) topicMap[r.sub]={c:0,t:0};
+    topicMap[r.sub].t++;
+    if(r.correct) topicMap[r.sub].c++;
+  });
+  const weak=Object.entries(topicMap).map(([k,v])=>({t:k,p:Math.round(v.c/v.t*100)})).sort((a,b)=>a.p-b.p).slice(0,3);
+  const nextD=acc>=80?'Hard':acc>=50?'Medium':'Easy';
+
+  if(step==='ask') return React.createElement('div',{style:{minHeight:'100vh',background:'var(--c-slate-50)',display:'flex',alignItems:'center',justifyContent:'center',padding:20},className:'page'},
+    React.createElement('div',{style:{maxWidth:480,width:'100%'}},
+      React.createElement('div',{className:'card p-10 text-center'},
+        React.createElement('div',{style:{fontSize:56,marginBottom:12}},'🤖'),
+        React.createElement('h2',{style:{fontSize:22,fontWeight:800,color:'var(--c-slate-800)',marginBottom:8}},'Want AI-Powered Recommendations?'),
+        React.createElement('p',{style:{color:'var(--c-slate-400)',fontSize:14,lineHeight:1.7,marginBottom:28}},"Our AI will analyze your test performance and suggest personalized next steps, weak topics to focus on, and the optimal difficulty for your next test."),
+        React.createElement('div',{style:{display:'flex',gap:10,justifyContent:'center'}},
+          React.createElement('button',{className:'btn btn-ghost',onClick:()=>go('userHome')},'Skip for Now'),
+          React.createElement('button',{className:'btn btn-accent btn-lg',onClick:()=>{setStep('loading');setTimeout(()=>setStep('show'),1800);}},'Yes, Show Me! →')
+        )
+      )
+    )
+  );
+  if(step==='loading') return React.createElement('div',{style:{minHeight:'100vh',background:'var(--c-slate-50)',display:'flex',alignItems:'center',justifyContent:'center'},className:'page'},
+    React.createElement('div',{className:'card p-10 text-center',style:{maxWidth:400}},
+      React.createElement('div',{style:{fontSize:48,marginBottom:12,display:'inline-block',animation:'spin 1s linear infinite'}},'🧠'),
+      React.createElement('h3',{style:{fontSize:18,fontWeight:700,color:'var(--c-slate-700)'}},'Analyzing your performance...'),
+      React.createElement('p',{style:{color:'var(--c-slate-400)',fontSize:13,marginTop:6}},'AI is processing your results')
+    )
+  );
+  return React.createElement('div',{style:{minHeight:'100vh',background:'var(--c-slate-50)',padding:'24px 16px'},className:'page'},
+    React.createElement('div',{style:{maxWidth:560,margin:'0 auto'}},
+      React.createElement('div',{style:{textAlign:'center',marginBottom:24}},
+        React.createElement('h2',{style:{fontSize:24,fontWeight:800,color:'var(--c-slate-800)'}},'Your AI Study Plan 🚀'),
+        React.createElement('p',{style:{color:'var(--c-slate-400)',fontSize:13,marginTop:4}},'Personalized recommendations based on your performance')
+      ),
+      React.createElement('div',{className:'card p-6',style:{marginBottom:14}},
+        React.createElement('div',{style:{fontWeight:700,color:'var(--c-slate-700)',marginBottom:12,fontSize:14}},'📌 Weak Topics to Focus On'),
+        weak.length>0?weak.map(({t,p})=>React.createElement('div',{key:t,style:{marginBottom:12}},
+          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:4,fontSize:13}},
+            React.createElement('span',{style:{fontWeight:600,color:'var(--c-slate-700)'}},t),
+            React.createElement('span',{style:{color:'var(--c-slate-400)'}},p,'%')
+          ),
+          React.createElement('div',{className:'progress'},
+            React.createElement('div',{className:'progress-fill',style:{width:p+'%',background:p<40?'var(--c-red)':p<70?'var(--c-amber)':'var(--c-emerald)'}})
+          )
+        )):React.createElement('p',{style:{color:'var(--c-emerald)',fontSize:13,fontWeight:600}},'🌟 Great job! No major weak areas detected.')
+      ),
+      React.createElement('div',{className:'card p-6',style:{marginBottom:14}},
+        React.createElement('div',{style:{fontWeight:700,color:'var(--c-slate-700)',marginBottom:12,fontSize:14}},'🎯 Next Test Recommendation'),
+        React.createElement('div',{style:{background:'var(--c-indigo-l)',borderRadius:12,padding:16}},
+          React.createElement('p',{style:{color:'#3730A3',fontWeight:700,fontSize:14}},'Recommended Difficulty: ',React.createElement('span',{style:{fontSize:18}},nextD)),
+          React.createElement('p',{style:{color:'#818CF8',fontSize:12,marginTop:4}},'Questions: ',(acc>=70?15:10),' | Same subject: '+(cfg?.subj||'')),
+          React.createElement('p',{style:{color:'#818CF8',fontSize:12,marginTop:6}},acc>=80?'You\'re crushing it! Time to challenge yourself.':acc>=50?'Solid performance. Medium difficulty builds consistency.':'Practice easier questions first to build confidence.')
+        )
+      ),
+      React.createElement('div',{className:'card p-6',style:{marginBottom:16}},
+        React.createElement('div',{style:{fontWeight:700,color:'var(--c-slate-700)',marginBottom:10,fontSize:14}},'📚 Study Tips'),
+        ['Review NCERT concepts for your weak topics','Practice 20 questions daily for consistency','Time yourself strictly during practice sessions','Take a full mock test every weekend'].map(tip=>
+          React.createElement('div',{key:tip,style:{display:'flex',gap:8,alignItems:'flex-start',fontSize:13,color:'var(--c-slate-600)',marginBottom:8}},
+            React.createElement('span',{style:{color:'var(--c-indigo)',marginTop:1}},'→'),tip
+          )
+        )
+      ),
+      React.createElement('button',{className:'btn btn-accent btn-lg',style:{width:'100%'},onClick:()=>go('userHome')},'Start Recommended Test →')
+    )
+  );
+}
+
+// ADMIN LAYOUT
+function AdminLayout({page,go,children}){
+  const nav=[{id:'adminDashboard',l:'Dashboard',ic:'📊'},{id:'adminQuestions',l:'Questions',ic:'📝'},{id:'adminAddQ',l:'Add Question',ic:'➕'},{id:'adminAnalytics',l:'Analytics',ic:'📈'}];
+  return React.createElement('div',{className:'admin-wrap'},
+    React.createElement('aside',{className:'sidebar'},
+      React.createElement('div',{className:'sidebar-logo',onClick:()=>go('landing'),style:{cursor:'pointer'}},
+        React.createElement('div',{className:'sidebar-logo-icon'},'CP'),
+        React.createElement('div',null,
+          React.createElement('div',{style:{fontWeight:800,fontSize:14}},'ChaloPrep'),
+          React.createElement('div',{style:{fontSize:10,color:'rgba(255,255,255,.4)'}},'Admin Panel')
+        )
+      ),
+      React.createElement('nav',{className:'sidebar-nav'},
+        nav.map(item=>React.createElement('div',{key:item.id,className:'nav-item'+(page===item.id?' active':''),onClick:()=>go(item.id)},
+          React.createElement('span',{className:'nav-icon'},item.ic),item.l
+        ))
+      ),
+      React.createElement('div',{className:'sidebar-bottom'},
+        React.createElement('div',{className:'nav-item',onClick:()=>go('landing')},
+          React.createElement('span',{className:'nav-icon'},'←'),'Exit Admin'
+        )
+      )
+    ),
+    React.createElement('main',{className:'admin-content page'},children)
+  );
+}
+
+// ADMIN DASHBOARD
+function AdminDashboard(){
+  const R=window.Recharts;
+  const metrics=[{l:'Total Questions',v:'247',ic:'📝',bg:'#EEF2FF',ic2:'#4F46E5',ch:'+12 this week'},{l:'Published',v:'230',ic:'✅',bg:'var(--c-emerald-l)',ic2:'#065F46',ch:'93% published'},{l:'Total Tests',v:'1,847',ic:'📋',bg:'#EFF6FF',ic2:'#1D4ED8',ch:'+45 today'},{l:'Students',v:'3,421',ic:'🎓',bg:'#F5F3FF',ic2:'#6D28D9',ch:'+89 this month'},{l:'Tests Attempted',v:'12,583',ic:'⚡',bg:'var(--c-orange-l)',ic2:'#C2410C',ch:'avg 3.7/student'},{l:'Avg Accuracy',v:'67.3%',ic:'🎯',bg:'#FDF2F8',ic2:'#9D174D',ch:'+2.1% vs last week'}];
+  return React.createElement('div',null,
+    React.createElement('div',{style:{marginBottom:24}},
+      React.createElement('h1',{style:{fontSize:22,fontWeight:800,color:'var(--c-slate-800)'}},'Dashboard'),
+      React.createElement('p',{style:{color:'var(--c-slate-400)',fontSize:13,marginTop:4}},'Platform overview and live analytics')
+    ),
+    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:24}},
+      metrics.map(m=>React.createElement('div',{key:m.l,className:'metric-card'},
+        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}},
+          React.createElement('div',null,
+            React.createElement('div',{className:'metric-label'},m.l),
+            React.createElement('div',{className:'metric-val'},m.v),
+            React.createElement('div',{className:'metric-change'},m.ch)
+          ),
+          React.createElement('div',{className:'metric-icon',style:{background:m.bg}},React.createElement('span',{style:{fontSize:18}},m.ic))
+        )
+      ))
+    ),
+    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'3fr 2fr',gap:16,marginBottom:20}},
+      React.createElement('div',{className:'card p-6'},
+        React.createElement('div',{style:{fontWeight:700,fontSize:14,color:'var(--c-slate-700)',marginBottom:4}},'Test Attempts — Last 7 Days'),
+        React.createElement('p',{style:{fontSize:11,color:'var(--c-slate-400)',marginBottom:16}},'Daily test volume across platform'),
+        R?React.createElement(R.ResponsiveContainer,{width:'100%',height:190},
+          React.createElement(R.AreaChart,{data:ATTEMPT_DATA},
+            React.createElement(R.CartesianGrid,{strokeDasharray:'3 3',stroke:'#f1f5f9'}),
+            React.createElement(R.XAxis,{dataKey:'d',tick:{fontSize:11}}),
+            React.createElement(R.YAxis,{tick:{fontSize:11}}),
+            React.createElement(R.Tooltip,null),
+            React.createElement(R.Area,{type:'monotone',dataKey:'v',stroke:'#4F46E5',fill:'#EEF2FF',strokeWidth:2,name:'Attempts'})
+          )
+        ):React.createElement('p',{style:{color:'var(--c-slate-400)',fontSize:12}},'Loading chart...')
+      ),
+      React.createElement('div',{className:'card p-6'},
+        React.createElement('div',{style:{fontWeight:700,fontSize:14,color:'var(--c-slate-700)',marginBottom:4}},'Accuracy by Subject'),
+        React.createElement('p',{style:{fontSize:11,color:'var(--c-slate-400)',marginBottom:12}},'Section-wise performance'),
+        R?React.createElement(R.ResponsiveContainer,{width:'100%',height:160},
+          React.createElement(R.PieChart,null,
+            React.createElement(R.Pie,{data:ACC_DATA,cx:'50%',cy:'50%',innerRadius:40,outerRadius:65,dataKey:'v',nameKey:'n'},
+              ACC_DATA.map((d,i)=>React.createElement(R.Cell,{key:i,fill:d.c}))
+            ),
+            React.createElement(R.Tooltip,{formatter:v=>[v+'%','Accuracy']})
+          )
+        ):null,
+        React.createElement('div',{style:{display:'flex',flexWrap:'wrap',gap:6,marginTop:8}},
+          ACC_DATA.map(d=>React.createElement('div',{key:d.n,style:{display:'flex',alignItems:'center',gap:4,fontSize:10,color:'var(--c-slate-500)'}},
+            React.createElement('div',{style:{width:8,height:8,borderRadius:'50%',background:d.c,flexShrink:0}}),d.n
+          ))
+        )
+      )
+    ),
+    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}},
+      React.createElement('div',{className:'card p-6'},
+        React.createElement('div',{style:{fontWeight:700,fontSize:14,color:'var(--c-slate-700)',marginBottom:14}},'Recent Questions'),
+        QB.slice(0,5).map(q=>React.createElement('div',{key:q.id,style:{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:'1px solid var(--c-slate-50)'}},
+          React.createElement('div',{style:{width:32,height:32,background:'var(--c-indigo-l)',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:800,color:'var(--c-indigo)',flexShrink:0}},'#'+q.id),
+          React.createElement('div',{style:{flex:1,minWidth:0}},
+            React.createElement('p',{style:{fontSize:12,color:'var(--c-slate-700)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},q.q),
+            React.createElement('p',{style:{fontSize:10,color:'var(--c-slate-400)'}},q.exam,' · ',q.subject)
+          ),
+          React.createElement('span',{className:'badge badge-'+q.d.toLowerCase()},q.d)
+        ))
+      ),
+      React.createElement('div',{className:'card p-6'},
+        React.createElement('div',{style:{fontWeight:700,fontSize:14,color:'var(--c-slate-700)',marginBottom:14}},'Top Performing Students'),
+        TOP_STUDENTS.map((s,i)=>React.createElement('div',{key:s.n,style:{display:'flex',alignItems:'center',gap:10,marginBottom:12}},
+          React.createElement('div',{className:'avatar',style:{background:['#EEF2FF','#ECFDF5','#FFF7ED','#F5F3FF','#FDF2F8'][i],color:['#4F46E5','#059669','#EA580C','#7C3AED','#BE185D'][i]}},s.n.charAt(0)),
+          React.createElement('div',{style:{flex:1}},
+            React.createElement('p',{style:{fontSize:13,fontWeight:600,color:'var(--c-slate-700)'}},'',s.n),
+            React.createElement('p',{style:{fontSize:10,color:'var(--c-slate-400)'}},s.e,' · ',s.t,' tests')
+          ),
+          React.createElement('span',{style:{fontSize:13,fontWeight:800,color:'var(--c-emerald)'}},s.acc,'%')
+        ))
+      )
+    )
+  );
+}
+
+// ADMIN QUESTIONS
+function AdminQuestions({go,questions,onDel}){
+  const [search,setSearch]=useState('');
+  const [fExam,setFExam]=useState('All');
+  const [fDiff,setFDiff]=useState('All');
+  const filtered=questions.filter(q=>
+    (fExam==='All'||q.exam===fExam)&&
+    (fDiff==='All'||q.d===fDiff)&&
+    (q.q.toLowerCase().includes(search.toLowerCase())||q.topic.toLowerCase().includes(search.toLowerCase()))
+  );
+  return React.createElement('div',null,
+    React.createElement('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20}},
+      React.createElement('div',null,
+        React.createElement('h1',{style:{fontSize:22,fontWeight:800,color:'var(--c-slate-800)'}},'Question Bank'),
+        React.createElement('p',{style:{color:'var(--c-slate-400)',fontSize:13,marginTop:4}},questions.length,' total questions')
+      ),
+      React.createElement('button',{className:'btn btn-accent',onClick:()=>go('adminAddQ')},'+ Add Question')
+    ),
+    React.createElement('div',{className:'card p-4',style:{marginBottom:16,display:'flex',gap:10,flexWrap:'wrap'}},
+      React.createElement('input',{className:'input',style:{flex:1,minWidth:200},placeholder:'Search questions or topics...',value:search,onChange:e=>setSearch(e.target.value)}),
+      React.createElement('select',{className:'select',style:{width:140},value:fExam,onChange:e=>setFExam(e.target.value)},
+        React.createElement('option',{value:'All'},'All Exams'),
+        EXAMS.map(e=>React.createElement('option',{key:e,value:e},e))
+      ),
+      React.createElement('select',{className:'select',style:{width:130},value:fDiff,onChange:e=>setFDiff(e.target.value)},
+        React.createElement('option',{value:'All'},'All Difficulties'),
+        DIFFS.map(d=>React.createElement('option',{key:d,value:d},d))
+      )
+    ),
+    React.createElement('div',{className:'card',style:{overflow:'hidden'}},
+      React.createElement('div',{style:{overflowX:'auto'}},
+        React.createElement('table',{className:'table',style:{width:'100%'}},
+          React.createElement('thead',null,
+            React.createElement('tr',null,
+              ['#','Question','Exam','Subject','Topic','Difficulty','Actions'].map(h=>React.createElement('th',{key:h},h))
+            )
+          ),
+          React.createElement('tbody',null,
+            filtered.slice(0,20).map(q=>React.createElement('tr',{key:q.id},
+              React.createElement('td',{style:{color:'var(--c-slate-400)',fontFamily:'monospace',fontSize:11}},'#'+q.id),
+              React.createElement('td',null,
+                React.createElement('p',{style:{maxWidth:260,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:12,color:'var(--c-slate-700)'}},q.q),
+                React.createElement('p',{style:{fontSize:10,color:'var(--c-slate-400)'}},q.sub)
+              ),
+              React.createElement('td',null,React.createElement('span',{className:'badge badge-exam'},q.exam)),
+              React.createElement('td',{style:{fontSize:12,color:'var(--c-slate-600)'}},q.subject),
+              React.createElement('td',{style:{fontSize:12,color:'var(--c-slate-500)'}},q.topic),
+              React.createElement('td',null,React.createElement('span',{className:'badge badge-'+q.d.toLowerCase()},q.d)),
+              React.createElement('td',null,
+                React.createElement('div',{style:{display:'flex',gap:8}},
+                  React.createElement('button',{style:{fontSize:11,color:'var(--c-indigo)',fontWeight:700,background:'none',border:'none',cursor:'pointer'}},'Edit'),
+                  React.createElement('button',{onClick:()=>onDel(q.id),style:{fontSize:11,color:'var(--c-red)',fontWeight:700,background:'none',border:'none',cursor:'pointer'}},'Delete')
+                )
+              )
+            )),
+            filtered.length===0&&React.createElement('tr',null,React.createElement('td',{colSpan:7,style:{textAlign:'center',padding:32,color:'var(--c-slate-400)'}},'No questions found'))
+          )
+        )
+      )
+    )
+  );
+}
+
+// ADMIN ADD QUESTION
+function AdminAddQuestion({go,onAdd}){
+  const [form,setForm]=useState({exam:'',subj:'',topic:'',sub:'',diff:'Medium',q:'',o1:'',o2:'',o3:'',o4:'',ans:'0'});
+  const [saved,setSaved]=useState(false);
+  const u=k=>v=>setForm(f=>({...f,[k]:v}));
+  const handle=()=>{
+    if(!form.exam||!form.q||!form.o1) return;
+    onAdd({id:Date.now(),exam:form.exam,subject:form.subj,topic:form.topic,sub:form.sub,d:form.diff,q:form.q,opts:[form.o1,form.o2,form.o3,form.o4],ans:Number(form.ans)});
+    setSaved(true);
+    setTimeout(()=>{setSaved(false);go('adminQuestions');},1500);
+  };
+  return React.createElement('div',null,
+    React.createElement('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:20}},
+      React.createElement('button',{onClick:()=>go('adminQuestions'),style:{background:'none',border:'none',color:'var(--c-slate-400)',cursor:'pointer',fontSize:13,fontFamily:'inherit'}},'← Back'),
+      React.createElement('div',null,
+        React.createElement('h1',{style:{fontSize:22,fontWeight:800,color:'var(--c-slate-800)'}},'Add New Question'),
+        React.createElement('p',{style:{color:'var(--c-slate-400)',fontSize:13,marginTop:4}},'Contribute to the question bank')
+      )
+    ),
+    saved&&React.createElement('div',{style:{marginBottom:14,background:'var(--c-emerald-l)',border:'1px solid #A7F3D0',color:'#065F46',borderRadius:12,padding:'12px 16px',fontSize:13,fontWeight:700}},'✅ Question saved successfully! Redirecting...'),
+    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}},
+      React.createElement('div',{className:'card p-6'},
+        React.createElement('div',{style:{fontWeight:700,fontSize:14,color:'var(--c-slate-700)',marginBottom:16}},'Question Metadata'),
+        [
+          {k:'exam',l:'Exam',type:'sel',opts:EXAMS},
+          {k:'subj',l:'Subject',type:'sel',opts:SUBS[form.exam]||[]},
+          {k:'topic',l:'Topic',type:'txt',ph:'e.g. Mechanics'},
+          {k:'sub',l:'Sub-Topic',type:'txt',ph:'e.g. Kinematics'},
+          {k:'diff',l:'Difficulty',type:'sel',opts:DIFFS}
+        ].map(f=>React.createElement('div',{key:f.k,style:{marginBottom:14}},
+          React.createElement('label',{className:'label'},f.l),
+          f.type==='sel'?React.createElement('select',{className:'select',value:form[f.k],onChange:e=>u(f.k)(e.target.value)},
+            React.createElement('option',{value:''},'Select '+f.l),
+            (f.opts||[]).map(o=>React.createElement('option',{key:o,value:o},o))
+          ):React.createElement('input',{className:'input',placeholder:f.ph,value:form[f.k],onChange:e=>u(f.k)(e.target.value)})
+        ))
+      ),
+      React.createElement('div',{className:'card p-6'},
+        React.createElement('div',{style:{fontWeight:700,fontSize:14,color:'var(--c-slate-700)',marginBottom:16}},'Question & Options'),
+        React.createElement('div',{style:{marginBottom:14}},
+          React.createElement('label',{className:'label'},'Question Text'),
+          React.createElement('textarea',{className:'input',rows:3,placeholder:'Enter the question...',value:form.q,onChange:e=>u('q')(e.target.value),style:{resize:'none',fontFamily:'inherit'}})
+        ),
+        [1,2,3,4].map(i=>React.createElement('div',{key:i,style:{marginBottom:12}},
+          React.createElement('label',{className:'label'},'Option '+String.fromCharCode(64+i)),
+          React.createElement('input',{className:'input',placeholder:'Option '+i,value:form['o'+i],onChange:e=>u('o'+i)(e.target.value)})
+        )),
+        React.createElement('div',{style:{marginBottom:20}},
+          React.createElement('label',{className:'label'},'Correct Option'),
+          React.createElement('select',{className:'select',value:form.ans,onChange:e=>u('ans')(e.target.value)},
+            ['Option A','Option B','Option C','Option D'].map((o,i)=>React.createElement('option',{key:i,value:i},o))
+          )
+        ),
+        React.createElement('div',{style:{display:'flex',gap:10}},
+          React.createElement('button',{className:'btn btn-ghost',onClick:()=>go('adminQuestions')},'Cancel'),
+          React.createElement('button',{className:'btn btn-accent',style:{flex:1},onClick:handle},'Save Question')
+        )
+      )
+    )
+  );
+}
+
+// ADMIN ANALYTICS
+function AdminAnalytics(){
+  const R=window.Recharts;
+  const weekData=[{w:'W1',jee:120,neet:95,upsc:45,cat:78},{w:'W2',jee:145,neet:112,upsc:52,cat:91},{w:'W3',jee:167,neet:134,upsc:61,cat:103},{w:'W4',jee:189,neet:156,upsc:74,cat:118}];
+  const accTrend=[{w:'W1',acc:61.2},{w:'W2',acc:63.5},{w:'W3',acc:65.8},{w:'W4',acc:67.3}];
+  const weakTopics=[{t:'Calculus',v:48},{t:'Thermodynamics',v:52},{t:'Optics',v:55},{t:'Organic Chem',v:57},{t:'Genetics',v:59}];
+  return React.createElement('div',null,
+    React.createElement('div',{style:{marginBottom:24}},
+      React.createElement('h1',{style:{fontSize:22,fontWeight:800,color:'var(--c-slate-800)'}},'Analytics'),
+      React.createElement('p',{style:{color:'var(--c-slate-400)',fontSize:13,marginTop:4}},'Platform-wide performance insights')
+    ),
+    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}},
+      React.createElement('div',{className:'card p-6'},
+        React.createElement('div',{style:{fontWeight:700,fontSize:14,color:'var(--c-slate-700)',marginBottom:14}},'Tests by Exam (Weekly)'),
+        R?React.createElement(R.ResponsiveContainer,{width:'100%',height:210},
+          React.createElement(R.BarChart,{data:weekData},
+            React.createElement(R.CartesianGrid,{strokeDasharray:'3 3',stroke:'#f1f5f9'}),
+            React.createElement(R.XAxis,{dataKey:'w',tick:{fontSize:11}}),
+            React.createElement(R.YAxis,{tick:{fontSize:11}}),
+            React.createElement(R.Tooltip,null),
+            React.createElement(R.Legend,{wrapperStyle:{fontSize:11}}),
+            React.createElement(R.Bar,{dataKey:'jee',fill:'#4F46E5',radius:[4,4,0,0],name:'JEE'}),
+            React.createElement(R.Bar,{dataKey:'neet',fill:'#F97316',radius:[4,4,0,0],name:'NEET'}),
+            React.createElement(R.Bar,{dataKey:'upsc',fill:'#10B981',radius:[4,4,0,0],name:'UPSC'}),
+            React.createElement(R.Bar,{dataKey:'cat',fill:'#F59E0B',radius:[4,4,0,0],name:'CAT'})
+          )
+        ):null
+      ),
+      React.createElement('div',{className:'card p-6'},
+        React.createElement('div',{style:{fontWeight:700,fontSize:14,color:'var(--c-slate-700)',marginBottom:14}},'Platform Accuracy Trend'),
+        R?React.createElement(R.ResponsiveContainer,{width:'100%',height:210},
+          React.createElement(R.LineChart,{data:accTrend},
+            React.createElement(R.CartesianGrid,{strokeDasharray:'3 3',stroke:'#f1f5f9'}),
+            React.createElement(R.XAxis,{dataKey:'w',tick:{fontSize:11}}),
+            React.createElement(R.YAxis,{domain:[55,75],tick:{fontSize:11},tickFormatter:v=>v+'%'}),
+            React.createElement(R.Tooltip,{formatter:v=>[v+'%','Accuracy']}),
+            React.createElement(R.Line,{type:'monotone',dataKey:'acc',stroke:'#4F46E5',strokeWidth:2.5,dot:{fill:'#4F46E5',r:4},name:'Accuracy'})
+          )
+        ):null
+      )
+    ),
+    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}},
+      React.createElement('div',{className:'card p-6'},
+        React.createElement('div',{style:{fontWeight:700,fontSize:14,color:'var(--c-slate-700)',marginBottom:14}},'Weakest Topics Platform-wide'),
+        weakTopics.map(({t,v})=>React.createElement('div',{key:t,style:{marginBottom:14}},
+          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:4,fontSize:12}},
+            React.createElement('span',{style:{fontWeight:600,color:'var(--c-slate-700)'}},t),
+            React.createElement('span',{style:{color:'var(--c-slate-400)'}},v,'%')
+          ),
+          React.createElement('div',{className:'progress'},
+            React.createElement('div',{className:'progress-fill',style:{width:v+'%',background:'var(--c-red)'}})
+          )
+        ))
+      ),
+      React.createElement('div',{className:'card p-6'},
+        React.createElement('div',{style:{fontWeight:700,fontSize:14,color:'var(--c-slate-700)',marginBottom:14}},'Student Performance Distribution'),
+        [['Students scoring >80%','892','26%'],['Students scoring 60–80%','1,456','43%'],['Students scoring 40–60%','756','22%'],['Students scoring <40%','317','9%']].map(([l,v,p])=>
+          React.createElement('div',{key:l,style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 12px',background:'var(--c-slate-50)',borderRadius:10,marginBottom:8}},
+            React.createElement('span',{style:{fontSize:12,color:'var(--c-slate-600)'}},l),
+            React.createElement('div',{style:{textAlign:'right'}},
+              React.createElement('span',{style:{fontWeight:800,fontSize:13,color:'var(--c-slate-800)'}},v),
+              React.createElement('span',{style:{fontSize:11,color:'var(--c-slate-400)',marginLeft:6}},'(',p,')')
+            )
+          )
+        ),
+        React.createElement('div',{style:{marginTop:12,padding:'12px 14px',background:'var(--c-indigo-l)',borderRadius:12}},
+          React.createElement('p',{style:{fontSize:13,color:'#3730A3',fontWeight:700}},'📈 Platform Health Score: B+'),
+          React.createElement('p',{style:{fontSize:11,color:'#818CF8',marginTop:3}},'Above industry average for EdTech platforms')
+        )
+      )
+    )
+  );
+}
+
+// ============ MAIN APP ============
+function App(){
+  const [page,setPage]=useState('landing');
+  const [testCfg,setTestCfg]=useState(null);
+  const [results,setResults]=useState([]);
+  const [dPath,setDPath]=useState([]);
+  const [adminQs,setAdminQs]=useState([...QB]);
+
+  const go=p=>setPage(p);
+  const onStart=cfg=>setTestCfg(cfg);
+  const onDone=(res,path)=>{setResults(res);setDPath(path);go('results');};
+  const onDel=id=>setAdminQs(qs=>qs.filter(q=>q.id!==id));
+  const onAdd=q=>setAdminQs(qs=>[...qs,q]);
+
+  const isAdmin=['adminDashboard','adminQuestions','adminAddQ','adminAnalytics'].includes(page);
+
+  let content;
+  switch(page){
+    case 'landing': content=React.createElement(LandingPage,{go}); break;
+    case 'auth': content=React.createElement(AuthPage,{go}); break;
+    case 'roleSelect': content=React.createElement(RoleSelectPage,{go}); break;
+    case 'userHome': content=React.createElement(UserHomePage,{go,onStart}); break;
+    case 'instructions': content=React.createElement(InstructionsPage,{cfg:testCfg,go}); break;
+    case 'test': content=React.createElement(TestEnginePage,{cfg:testCfg,onDone}); break;
+    case 'results': content=React.createElement(ResultsPage,{results,dPath,cfg:testCfg,go}); break;
+    case 'recommendations': content=React.createElement(RecommendationsPage,{results,cfg:testCfg,go}); break;
+    case 'adminDashboard': content=React.createElement(AdminDashboard,null); break;
+    case 'adminQuestions': content=React.createElement(AdminQuestions,{go,questions:adminQs,onDel}); break;
+    case 'adminAddQ': content=React.createElement(AdminAddQuestion,{go,onAdd}); break;
+    case 'adminAnalytics': content=React.createElement(AdminAnalytics,null); break;
+    default: content=React.createElement(LandingPage,{go});
+  }
+
+  if(isAdmin) return React.createElement(AdminLayout,{page,go},content);
+  return content;
+}
+
+const root=ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(App));
+</script>
+<style>
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+</style>

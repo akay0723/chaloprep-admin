@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChaloPrep Admin - Question Upload</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --c-indigo: #4F46E5;
+            --c-indigo-l: #EEF2FF;
+            --c-orange: #F97316;
+            --c-emerald: #10B981;
+            --c-emerald-l: #ECFDF5;
+            --c-slate-50: #F8FAFC;
+            --c-slate-100: #F1F5F9;
+            --c-slate-200: #E2E8F0;
+            --c-slate-300: #CBD5E1;
+            --c-slate-400: #94A3B8;
+            --c-slate-500: #64748B;
+            --c-slate-600: #475569;
+            --c-slate-700: #334155;
+            --c-slate-800: #1E293B;
+            --c-slate-900: #0F172A;
+            --c-red: #EF4444;
+            --c-amber: #F59E0B;
+            --c-amber-l: #FFFBEB;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--c-slate-50);
+            color: var(--c-slate-800);
+            min-height: 100vh;
+        }
+
+        .admin-wrap {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--c-slate-900);
+            color: #fff;
+            padding: 24px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-logo {
+            padding: 0 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--c-orange);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .sidebar-logo-text {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .sidebar-logo-sub {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+        }
+
+        .sidebar-nav {
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            color: rgba(255, 255, 255, 0.55);
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .nav-item.active {
+            background: var(--c-indigo);
+            color: #fff;
+        }
+
+        .nav-icon {
+            width: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .sidebar-bottom {
+            padding: 12px 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .user-info {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 32px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--c-slate-900);
+        }
+
+        .header-subtitle {
+            font-size: 14px;
+            color: var(--c-slate-600);
+            margin-top: 4px;
+        }
+
+        .section-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            border-bottom: 2px solid var(--c-slate-200);
+            padding-bottom: 16px;
+        }
+
+        .tab {
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            color: var(--c-slate-600);
+            transition: all 0.2s;
+            position: relative;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -16px;
+            padding-bottom: 13px;
+        }
+
+        .tab:hover {
+            color: var(--c-indigo);
+        }
+
+        .tab.active {
+            color: var(--c-indigo);
+            border-bottom-color: var(--c-indigo);
+        }
+
+        /* Form Container */
+        .form-container {
+            background: #fff;
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid var(--c-slate-200);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--c-slate-900);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--c-slate-600);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--c-slate-200);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--c-slate-800);
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--c-indigo);
+            box-shadow: 0 0 0 3px var(--c-indigo-l);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+
+        /* Options Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .option-group {
+            padding: 16px;
+            background: var(--c-slate-50);
+            border-radius: 10px;
+            border: 1px solid var(--c-slate-200);
+        }
+
+        .option-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--c-slate-500);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        /* DILR Specific Styles */
+        .dilr-question-set {
+            background: var(--c-slate-50);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--c-slate-200);
+        }
+
+        .question-number {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--c-slate-600);
+            margin-bottom: 16px;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        button.btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--c-indigo);
+            color: #fff;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background: #4338CA;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--c-slate-100);
+            color: var(--c-slate-600);
+            border: 1px solid var(--c-slate-300);
+        }
+
+        .btn-secondary:hover {
+            background: var(--c-slate-50);
+        }
+
+        .btn-add {
+            background: transparent;
+            color: var(--c-indigo);
+            border: 1px solid var(--c-indigo);
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .btn-add:hover {
+            background: var(--c-indigo-l);
+        }
+
+        .btn-remove {
+            background: transparent;
+            color: var(--c-red);
+            border: 1px solid var(--c-red);
+            padding: 6px 12px;
+            font-size: 11px;
+        }
+
+        .btn-remove:hover {
+            background: #FEF2F2;
+        }
+
+        /* File Upload */
+        .file-upload {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            flex: 1;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 14px;
+            border: 1.5px dashed var(--c-indigo);
+            background: var(--c-indigo-l);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--c-indigo);
+            transition: all 0.2s;
+        }
+
+        .file-input-label:hover {
+            background: #E0E7FF;
+        }
+
+        .file-name {
+            font-size: 12px;
+            color: var(--c-slate-600);
+            padding: 8px 12px;
+            background: var(--c-emerald-l);
+            border-radius: 6px;
+            border: 1px solid #BBEAD5;
+        }
+
+        /* Toast Messages */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 14px 20px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast.success {
+            background: var(--c-emerald);
+        }
+
+        .toast.error {
+            background: var(--c-red);
+        }
+
+        .toast.info {
+            background: var(--c-indigo);
+        }
+
+        /* Recent Uploads */
+        .recent-uploads {
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 2px solid var(--c-slate-200);
+        }
+
+        .uploads-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--c-slate-900);
+        }
+
+        .upload-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--c-slate-50);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid var(--c-slate-200);
+            font-size: 13px;
+        }
+
+        .upload-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .badge-draft {
+            background: var(--c-amber-l);
+            color: #92400E;
+        }
+
+        .badge-published {
+            background: var(--c-emerald-l);
+            color: #065F46;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400;
+            font-size: 18px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .info-box {
+            background: var(--c-indigo-l);
+            border: 1px solid #E0E7FF;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 12px;
+            color: #3730A3;
+            margin-bottom: 20px;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .main-content {
+                margin-left: 200px;
+                padding: 24px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+            }
+
+            .sidebar-nav {
+                display: flex;
+                flex-wrap: wrap;
+                padding: 8px;
+            }
+
+            .nav-item {
+                flex: 1;
+                min-width: 150px;
+            }
+
+            .sidebar-bottom {
+                position: static;
+                padding: 12px;
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+                margin-top: 12px;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .form-container {
+                padding: 20px;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-wrap">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">CP</div>
+                <div>
+                    <div class="sidebar-logo-text">ChaloPrep</div>
+                    <div class="sidebar-logo-sub">Question Manager</div>
+                </div>
+            </div>
+
+            <div class="sidebar-nav">
+                <div class="nav-item active">
+                    <span class="nav-icon material-symbols-outlined">add_circle</span>
+                    <span>Upload Questions</span>
+                </div>
+                <div class="nav-item">
+                    <span class="nav-icon material-symbols-outlined">history</span>
+                    <span>Recent Uploads</span>
+                </div>
+            </div>
+
+            <div class="sidebar-bottom">
+                <div class="user-info">
+                    👤 <strong>Admin</strong><br>
+                    <span id="adminEmail">admin@chaloprep.com</span>
+                </div>
+                <button class="btn-logout" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <div>
+                    <h1>Question Manager</h1>
+                    <p class="header-subtitle">Upload and manage CAT exam questions</p>
+                </div>
+            </div>
+
+            <!-- Section Tabs -->
+            <div class="section-tabs">
+                <button class="tab active" onclick="switchSection('varc')">📚 VARC</button>
+                <button class="tab" onclick="switchSection('dilr')">🧩 DILR</button>
+                <button class="tab" onclick="switchSection('qa')">✏️ QA</button>
+            </div>
+
+            <!-- Form Container -->
+            <div class="form-container">
+
+                <!-- VARC Section -->
+                <div class="form-section active" id="varc-section">
+                    <h2 class="section-title">Add VARC Question</h2>
+                    <div class="info-box">
+                        <strong>📌 Verbal Ability & Reading Comprehension</strong>
+                        Upload passage-based questions, para summary, or vocabulary questions.
+                    </div>
+
+                    <form id="varcForm" onsubmit="submitQuestion(event, 'varc')">
+                        <div class="form-group">
+                            <label for="varcQuestionType">Question Type *</label>
+                            <select id="varcQuestionType" required onchange="togglePassageFields('varc')">
+                                <option value="">Select Type</option>
+                                <option value="RC">Reading Comprehension (RC)</option>
+                                <option value="Para Summary">Para Summary</option>
+                                <option value="Vocabulary">Vocabulary / Synonyms</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="passageTitleGroup">
+                            <label for="varcPassageTitle">Passage Title</label>
+                            <input type="text" id="varcPassageTitle" placeholder="e.g., The Digital Revolution">
+                        </div>
+
+                        <div class="form-group" id="passageTextGroup">
+                            <label for="varcPassageText">Passage Text *</label>
+                            <textarea id="varcPassageText" placeholder="Enter the full passage..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="varcQuestion">Question *</label>
+                            <textarea id="varcQuestion" placeholder="Enter the question..." required></textarea>
+                        </div>
+
+                        <label>Options *</label>
+                        <div class="options-grid">
+                            <div class="option-group">
+                                <div class="option-label">Option A</div>
+                                <input type="text" class="varcOption" placeholder="Option A" required>
+                            </div>
+                            <div class="option-group">
+                                <div class="option-label">Option B</div>
+                                <input type="text" class="varcOption" placeholder="Option B" required>
+                            </div>
+                            <div class="option-group">
+                                <div class="option-label">Option C</div>
+                                <input type="text" class="varcOption" placeholder="Option C" required>
+                            </div>
+                            <div class="option-group">
+                                <div class="option-label">Option D</div>
+                                <input type="text" class="varcOption" placeholder="Option D" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="varcCorrectAnswer">Correct Answer *</label>
+                                <select id="varcCorrectAnswer" required>
+                                    <option value="">Select Answer</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="varcDifficulty">Difficulty *</label>
+                                <select id="varcDifficulty" required>
+                                    <option value="">Select Difficulty</option>
+                                    <option value="Easy">Easy</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Hard">Hard</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="varcTopic">Topic *</label>
+                                <input type="text" id="varcTopic" placeholder="e.g., Reading Comprehension" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="varcSubtopic">Subtopic</label>
+                                <input type="text" id="varcSubtopic" placeholder="e.g., Main Idea">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="varcTimeEstimate">Time Estimate (seconds) *</label>
+                                <input type="number" id="varcTimeEstimate" placeholder="e.g., 45" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="varcStatus">Status *</label>
+                                <select id="varcStatus" required>
+                                    <option value="Draft">Draft</option>
+                                    <option value="Published">Published</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="varcExplanation">Explanation</label>
+                            <textarea id="varcExplanation" placeholder="Explain the correct answer..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="varcTags">Tags (comma-separated)</label>
+                            <input type="text" id="varcTags" placeholder="e.g., comprehension, vocabulary, medium-level">
+                        </div>
+
+                        <div class="button-group">
+                            <button type="submit" class="btn btn-primary">
+                                <span class="material-symbols-outlined">upload</span>
+                                Submit Question
+                            </button>
+                            <button type="reset" class="btn btn-secondary">Clear Form</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- DILR Section -->
+                <div class="form-section" id="dilr-section">
+                    <h2 class="section-title">Add DILR Question Set</h2>
+                    <div class="info-box">
+                        <strong>🧩 Data Interpretation & Logical Reasoning</strong>
+                        Create a set with a diagram/caselet and multiple questions.
+                    </div>
+
+                    <form id="dilrForm" onsubmit="submitQuestion(event, 'dilr')">
+                        <div class="form-group">
+                            <label for="dilrSetName">Set Name *</label>
+                            <input type="text" id="dilrSetName" placeholder="e.g., Profit & Loss Analysis" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dilrSetType">Set Type *</label>
+                            <select id="dilrSetType" required>
+                                <option value="">Select Type</option>
+                                <option value="DI">Data Interpretation</option>
+                                <option value="LR">Logical Reasoning</option>
+                                <option value="Mixed">Mixed (DI + LR)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dilrInstruction">Instructions / Caselet *</label>
+                            <textarea id="dilrInstruction" placeholder="Enter the caselet or instructions..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Diagram/Image (Optional)</label>
+                            <div class="file-upload">
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="dilrImage" accept="image/*">
+                                    <label for="dilrImage" class="file-input-label">
+                                        <span class="material-symbols-outlined">image</span>
+                                        Upload Diagram
+                                    </label>
+                                </div>
+                                <span id="dilrImageName" class="hidden">File selected</span>
+                            </div>
+                        </div>
+
+                        <div id="dilrQuestionsContainer"></div>
+
+                        <button type="button" class="btn btn-add" onclick="addDILRQuestion()">
+                            <span class="material-symbols-outlined">add</span>
+                            Add Question to Set
+                        </button>
+
+                        <div class="button-group" style="margin-top: 32px;">
+                            <button type="submit" class="btn btn-primary">
+                                <span class="material-symbols-outlined">upload</span>
+                                Submit Question Set
+                            </button>
+                            <button type="reset" class="btn btn-secondary">Clear Form</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- QA Section -->
+                <div class="form-section" id="qa-section">
+                    <h2 class="section-title">Add QA Question</h2>
+                    <div class="info-box">
+                        <strong>✏️ Quantitative Aptitude</strong>
+                        Upload MCQ or Data Interpretation questions.
+                    </div>
+
+                    <form id="qaForm" onsubmit="submitQuestion(event, 'qa')">
+                        <div class="form-group">
+                            <label for="qaQuestionType">Question Type *</label>
+                            <select id="qaQuestionType" required onchange="toggleQAOptions()">
+                                <option value="">Select Type</option>
+                                <option value="MCQ">Multiple Choice (MCQ)</option>
+                                <option value="DI">Data Interpretation (DI)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="qaQuestion">Question *</label>
+                            <textarea id="qaQuestion" placeholder="Enter the question..." required></textarea>
+                        </div>
+
+                        <label>Options *</label>
+                        <div class="options-grid">
+                            <div class="option-group">
+                                <div class="option-label">Option A</div>
+                                <input type="text" class="qaOption" placeholder="Option A" required>
+                            </div>
+                            <div class="option-group">
+                                <div class="option-label">Option B</div>
+                                <input type="text" class="qaOption" placeholder="Option B" required>
+                            </div>
+                            <div class="option-group">
+                                <div class="option-label">Option C</div>
+                                <input type="text" class="qaOption" placeholder="Option C" required>
+                            </div>
+                            <div class="option-group">
+                                <div class="option-label">Option D</div>
+                                <input type="text" class="qaOption" placeholder="Option D" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="qaCorrectAnswer">Correct Answer *</label>
+                                <select id="qaCorrectAnswer" required>
+                                    <option value="">Select Answer</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="qaDifficulty">Difficulty *</label>
+                                <select id="qaDifficulty" required>
+                                    <option value="">Select Difficulty</option>
+                                    <option value="Easy">Easy</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Hard">Hard</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="qaTopic">Topic *</label>
+                                <input type="text" id="qaTopic" placeholder="e.g., Arithmetic" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="qaSubtopic">Subtopic</label>
+                                <input type="text" id="qaSubtopic" placeholder="e.g., Percentage">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="qaTimeEstimate">Time Estimate (seconds) *</label>
+                                <input type="number" id="qaTimeEstimate" placeholder="e.g., 30" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="qaStatus">Status *</label>
+                                <select id="qaStatus" required>
+                                    <option value="Draft">Draft</option>
+                                    <option value="Published">Published</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="qaExplanation">Explanation</label>
+                            <textarea id="qaExplanation" placeholder="Explain the solution..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="qaTags">Tags (comma-separated)</label>
+                            <input type="text" id="qaTags" placeholder="e.g., arithmetic, percentage, medium-level">
+                        </div>
+
+                        <div class="button-group">
+                            <button type="submit" class="btn btn-primary">
+                                <span class="material-symbols-outlined">upload</span>
+                                Submit Question
+                            </button>
+                            <button type="reset" class="btn btn-secondary">Clear Form</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Recent Uploads -->
+                <div class="recent-uploads">
+                    <h3 class="uploads-title">📝 Recent Uploads (This Session)</h3>
+                    <div id="recentUploadsList">
+                        <p style="color: var(--c-slate-500); font-size: 13px;">No uploads yet. Submit your first question to see it here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ AUTH CHECK ============
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('adminToken');
+            const email = localStorage.getItem('adminEmail');
+
+            if (!token) {
+                window.location.href = 'admin-login.html';
+                return;
+            }
+
+            document.getElementById('adminEmail').textContent = email || 'admin@chaloprep.com';
+        });
+
+        // ============ STATE & DATA ============
+        let recentUploads = [];
+        let dilrQuestionCount = 0;
+
+        // ============ SECTION SWITCHING ============
+        function switchSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.form-section').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Remove active from all tabs
+            document.querySelectorAll('.tab').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Show selected section
+            document.getElementById(section + '-section').classList.add('active');
+
+            // Mark tab as active
+            event.target.classList.add('active');
+
+            // Reset DILR questions on switch
+            if (section === 'dilr') {
+                dilrQuestionCount = 0;
+                document.getElementById('dilrQuestionsContainer').innerHTML = '';
+                addDILRQuestion();
+            }
+        }
+
+        // ============ VARC HELPERS ============
+        function togglePassageFields(section) {
+            const questionType = document.getElementById(section + 'QuestionType').value;
+            const passageTitleGroup = document.getElementById('passageTitleGroup');
+            const passageTextGroup = document.getElementById('passageTextGroup');
+
+            if (questionType === 'Vocabulary') {
+                passageTitleGroup.classList.add('hidden');
+                passageTextGroup.classList.add('hidden');
+                passageTextGroup.querySelector('textarea').removeAttribute('required');
+            } else {
+                passageTitleGroup.classList.remove('hidden');
+                passageTextGroup.classList.remove('hidden');
+                passageTextGroup.querySelector('textarea').setAttribute('required', 'required');
+            }
+        }
+
+        // ============ DILR HELPERS ============
+        function addDILRQuestion() {
+            dilrQuestionCount++;
+            const container = document.getElementById('dilrQuestionsContainer');
+
+            const questionHTML = `
+                <div class="dilr-question-set" id="dilrQuestion${dilrQuestionCount}">
+                    <div class="question-number">Question ${dilrQuestionCount}</div>
+                    
+                    <div class="form-group">
+                        <label for="dilrQ${dilrQuestionCount}Text">Question Text *</label>
+                        <textarea class="dilrQuestionText" placeholder="Enter question..." required></textarea>
+                    </div>
+
+                    <label>Options *</label>
+                    <div class="options-grid">
+                        <div class="option-group">
+                            <div class="option-label">Option A</div>
+                            <input type="text" class="dilrOption" placeholder="Option A" required>
+                        </div>
+                        <div class="option-group">
+                            <div class="option-label">Option B</div>
+                            <input type="text" class="dilrOption" placeholder="Option B" required>
+                        </div>
+                        <div class="option-group">
+                            <div class="option-label">Option C</div>
+                            <input type="text" class="dilrOption" placeholder="Option C" required>
+                        </div>
+                        <div class="option-group">
+                            <div class="option-label">Option D</div>
+                            <input type="text" class="dilrOption" placeholder="Option D" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dilrQ${dilrQuestionCount}Answer">Correct Answer *</label>
+                            <select class="dilrCorrectAnswer" required>
+                                <option value="">Select Answer</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="dilrQ${dilrQuestionCount}Diff">Difficulty *</label>
+                            <select class="dilrDifficulty" required>
+                                <option value="">Select Difficulty</option>
+                                <option value="Easy">Easy</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Hard">Hard</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    ${dilrQuestionCount > 1 ? `<button type="button" class="btn btn-remove" onclick="removeDILRQuestion(${dilrQuestionCount})">Remove Question</button>` : ''}
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', questionHTML);
+        }
+
+        function removeDILRQuestion(count) {
+            const element = document.getElementById('dilrQuestion' + count);
+            if (element) {
+                element.remove();
+            }
+        }
+
+        // ============ QA HELPERS ============
+        function toggleQAOptions() {
+            const questionType = document.getElementById('qaQuestionType').value;
+            // QA type toggle can be used for future enhancements
+        }
+
+        // ============ FORM SUBMISSION ============
+        function submitQuestion(event, section) {
+            event.preventDefault();
+
+            let questionData = {};
+
+            if (section === 'varc') {
+                const options = Array.from(document.querySelectorAll('.varcOption')).map(el => el.value);
+                questionData = {
+                    section: 'VARC',
+                    type: document.getElementById('varcQuestionType').value,
+                    passageTitle: document.getElementById('varcPassageTitle').value,
+                    passageText: document.getElementById('varcPassageText').value,
+                    question: document.getElementById('varcQuestion').value,
+                    options: options,
+                    correctAnswer: document.getElementById('varcCorrectAnswer').value,
+                    difficulty: document.getElementById('varcDifficulty').value,
+                    topic: document.getElementById('varcTopic').value,
+                    subtopic: document.getElementById('varcSubtopic').value,
+                    timeEstimate: parseInt(document.getElementById('varcTimeEstimate').value),
+                    explanation: document.getElementById('varcExplanation').value,
+                    tags: document.getElementById('varcTags').value.split(',').filter(t => t.trim()),
+                    status: document.getElementById('varcStatus').value,
+                    createdAt: new Date().toISOString()
+                };
+            } else if (section === 'dilr') {
+                const questions = [];
+                document.querySelectorAll('.dilr-question-set').forEach((qDiv, idx) => {
+                    const options = Array.from(qDiv.querySelectorAll('.dilrOption')).map(el => el.value);
+                    questions.push({
+                        order: idx + 1,
+                        question: qDiv.querySelector('.dilrQuestionText').value,
+                        options: options,
+                        correctAnswer: qDiv.querySelector('.dilrCorrectAnswer').value,
+                        difficulty: qDiv.querySelector('.dilrDifficulty').value
+                    });
+                });
+
+                questionData = {
+                    section: 'DILR',
+                    setName: document.getElementById('dilrSetName').value,
+                    setType: document.getElementById('dilrSetType').value,
+                    instruction: document.getElementById('dilrInstruction').value,
+                    imageUrl: document.getElementById('dilrImage').files.length > 0 ? 'image-url-placeholder' : null,
+                    questions: questions,
+                    status: 'Published',
+                    createdAt: new Date().toISOString()
+                };
+            } else if (section === 'qa') {
+                const options = Array.from(document.querySelectorAll('.qaOption')).map(el => el.value);
+                questionData = {
+                    section: 'QA',
+                    type: document.getElementById('qaQuestionType').value,
+                    question: document.getElementById('qaQuestion').value,
+                    options: options,
+                    correctAnswer: document.getElementById('qaCorrectAnswer').value,
+                    difficulty: document.getElementById('qaDifficulty').value,
+                    topic: document.getElementById('qaTopic').value,
+                    subtopic: document.getElementById('qaSubtopic').value,
+                    timeEstimate: parseInt(document.getElementById('qaTimeEstimate').value),
+                    explanation: document.getElementById('qaExplanation').value,
+                    tags: document.getElementById('qaTags').value.split(',').filter(t => t.trim()),
+                    status: document.getElementById('qaStatus').value,
+                    createdAt: new Date().toISOString()
+                };
+            }
+
+            // Store in local storage for demo
+            recentUploads.unshift(questionData);
+
+            // Show success toast
+            showToast(`✓ ${section.toUpperCase()} question submitted successfully!`, 'success');
+
+            // Update recent uploads list
+            updateRecentUploadsList();
+
+            // Reset form
+            document.getElementById(section + 'Form').reset();
+
+            // Log to console (in production, send to Supabase via API)
+            console.log('Question Data to be saved:', questionData);
+
+            // API call example (commented for frontend-only demo):
+            // fetch('/api/questions', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(questionData)
+            // }).then(res => res.json()).then(data => {
+            //     showToast('Question saved successfully!', 'success');
+            // }).catch(err => {
+            //     showToast('Error saving question: ' + err.message, 'error');
+            // });
+        }
+
+        function updateRecentUploadsList() {
+            const listDiv = document.getElementById('recentUploadsList');
+            if (recentUploads.length === 0) {
+                listDiv.innerHTML = '<p style="color: var(--c-slate-500); font-size: 13px;">No uploads yet.</p>';
+                return;
+            }
+
+            listDiv.innerHTML = recentUploads.map((q, idx) => `
+                <div class="upload-item">
+                    <div>
+                        <strong>${q.section}</strong> - ${q.type || 'Question'} 
+                        <span style="color: var(--c-slate-500);">${q.question ? q.question.substring(0, 50) + '...' : q.setName}</span>
+                    </div>
+                    <span class="upload-badge ${q.status === 'Draft' ? 'badge-draft' : 'badge-published'}">
+                        ${q.status}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        // ============ TOAST NOTIFICATIONS ============
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ============ LOGOUT ============
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminEmail');
+                window.location.href = 'admin-login.html';
+            }
+        }
+
+        // ============ FILE UPLOAD HANDLER ============
+        document.getElementById('dilrImage').addEventListener('change', (e) => {
+            const fileName = e.target.files[0]?.name || '';
+            const nameSpan = document.getElementById('dilrImageName');
+            if (fileName) {
+                nameSpan.textContent = '✓ ' + fileName;
+                nameSpan.classList.remove('hidden');
+            } else {
+                nameSpan.classList.add('hidden');
+            }
+        });
+
+        // Initialize DILR with one empty question
+        document.addEventListener('DOMContentLoaded', () => {
+            // DILR will auto-initialize on section switch
+        });
+    </script>
+</body>
+</html>
