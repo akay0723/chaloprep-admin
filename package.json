@@ -4,7 +4,7 @@
   "description": "ChaloPrep Admin Panel - CAT Question Management System",
   "private": true,
   "engines": {
-    "node": "18.x"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "npm install && node server.js",
