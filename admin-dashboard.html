@@ -650,7 +650,7 @@
 
             <!-- Section Tabs -->
             <div class="section-tabs">
-                <button class="tab active" onclick="switchSection('varc')">📚 VARC</button>
+                <button class="tab active" onclick="switchSection('')">📚 </button>
                 <button class="tab" onclick="switchSection('dilr')">🧩 DILR</button>
                 <button class="tab" onclick="switchSection('qa')">✏️ QA</button>
             </div>
@@ -658,18 +658,18 @@
             <!-- Form Container -->
             <div class="form-container">
 
-                <!-- VARC Section -->
-                <div class="form-section active" id="varc-section">
-                    <h2 class="section-title">Add VARC Question</h2>
+                <!--  Section -->
+                <div class="form-section active" id="-section">
+                    <h2 class="section-title">Add  Question</h2>
                     <div class="info-box">
                         <strong>📌 Verbal Ability & Reading Comprehension</strong>
                         Upload passage-based questions, para summary, or vocabulary questions.
                     </div>
 
-                    <form id="varcForm" onsubmit="submitQuestion(event, 'varc')">
+                    <form id="Form" onsubmit="submitQuestion(event, '')">
                         <div class="form-group">
-                            <label for="varcQuestionType">Question Type *</label>
-                            <select id="varcQuestionType" required onchange="togglePassageFields('varc')">
+                            <label for="QuestionType">Question Type *</label>
+                            <select id="QuestionType" required onchange="togglePassageFields('')">
                                 <option value="">Select Type</option>
                                 <option value="RC">Reading Comprehension (RC)</option>
                                 <option value="Para Summary">Para Summary</option>
@@ -678,44 +678,44 @@
                         </div>
 
                         <div class="form-group" id="passageTitleGroup">
-                            <label for="varcPassageTitle">Passage Title</label>
-                            <input type="text" id="varcPassageTitle" placeholder="e.g., The Digital Revolution">
+                            <label for="PassageTitle">Passage Title</label>
+                            <input type="text" id="PassageTitle" placeholder="e.g., The Digital Revolution">
                         </div>
 
                         <div class="form-group" id="passageTextGroup">
-                            <label for="varcPassageText">Passage Text *</label>
-                            <textarea id="varcPassageText" placeholder="Enter the full passage..." required></textarea>
+                            <label for="PassageText">Passage Text *</label>
+                            <textarea id="PassageText" placeholder="Enter the full passage..." required></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label for="varcQuestion">Question *</label>
-                            <textarea id="varcQuestion" placeholder="Enter the question..." required></textarea>
+                            <label for="Question">Question *</label>
+                            <textarea id="Question" placeholder="Enter the question..." required></textarea>
                         </div>
 
                         <label>Options *</label>
                         <div class="options-grid">
                             <div class="option-group">
                                 <div class="option-label">Option A</div>
-                                <input type="text" class="varcOption" placeholder="Option A" required>
+                                <input type="text" class="Option" placeholder="Option A" required>
                             </div>
                             <div class="option-group">
                                 <div class="option-label">Option B</div>
-                                <input type="text" class="varcOption" placeholder="Option B" required>
+                                <input type="text" class="Option" placeholder="Option B" required>
                             </div>
                             <div class="option-group">
                                 <div class="option-label">Option C</div>
-                                <input type="text" class="varcOption" placeholder="Option C" required>
+                                <input type="text" class="Option" placeholder="Option C" required>
                             </div>
                             <div class="option-group">
                                 <div class="option-label">Option D</div>
-                                <input type="text" class="varcOption" placeholder="Option D" required>
+                                <input type="text" class="Option" placeholder="Option D" required>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="varcCorrectAnswer">Correct Answer *</label>
-                                <select id="varcCorrectAnswer" required>
+                                <label for="CorrectAnswer">Correct Answer *</label>
+                                <select id="CorrectAnswer" required>
                                     <option value="">Select Answer</option>
                                     <option value="A">A</option>
                                     <option value="B">B</option>
@@ -724,8 +724,8 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="varcDifficulty">Difficulty *</label>
-                                <select id="varcDifficulty" required>
+                                <label for="Difficulty">Difficulty *</label>
+                                <select id="Difficulty" required>
                                     <option value="">Select Difficulty</option>
                                     <option value="Easy">Easy</option>
                                     <option value="Medium">Medium</option>
@@ -736,23 +736,23 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="varcTopic">Topic *</label>
-                                <input type="text" id="varcTopic" placeholder="e.g., Reading Comprehension" required>
+                                <label for="Topic">Topic *</label>
+                                <input type="text" id="Topic" placeholder="e.g., Reading Comprehension" required>
                             </div>
                             <div class="form-group">
-                                <label for="varcSubtopic">Subtopic</label>
-                                <input type="text" id="varcSubtopic" placeholder="e.g., Main Idea">
+                                <label for="Subtopic">Subtopic</label>
+                                <input type="text" id="Subtopic" placeholder="e.g., Main Idea">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="varcTimeEstimate">Time Estimate (seconds) *</label>
-                                <input type="number" id="varcTimeEstimate" placeholder="e.g., 45" min="1" required>
+                                <label for="TimeEstimate">Time Estimate (seconds) *</label>
+                                <input type="number" id="TimeEstimate" placeholder="e.g., 45" min="1" required>
                             </div>
                             <div class="form-group">
-                                <label for="varcStatus">Status *</label>
-                                <select id="varcStatus" required>
+                                <label for="Status">Status *</label>
+                                <select id="Status" required>
                                     <option value="Draft">Draft</option>
                                     <option value="Published">Published</option>
                                 </select>
@@ -760,13 +760,13 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="varcExplanation">Explanation</label>
-                            <textarea id="varcExplanation" placeholder="Explain the correct answer..."></textarea>
+                            <label for="Explanation">Explanation</label>
+                            <textarea id="Explanation" placeholder="Explain the correct answer..."></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label for="varcTags">Tags (comma-separated)</label>
-                            <input type="text" id="varcTags" placeholder="e.g., comprehension, vocabulary, medium-level">
+                            <label for="Tags">Tags (comma-separated)</label>
+                            <input type="text" id="Tags" placeholder="e.g., comprehension, vocabulary, medium-level">
                         </div>
 
                         <div class="button-group">
@@ -961,7 +961,7 @@
     </div>
 
     <script>
-const SUPABASE_URL = "https://yhufgyeeqjdnmilnihbt.supabase.co/";
+const SUPABASE_URL = "https://yhufgyeeqjdnmilnihbt.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodWZneWVlcWpkbm1pbG5paGJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0Njk3ODcsImV4cCI6MjA5NDA0NTc4N30.eSigz2_Ll3EGpw-MLsn2toAa4-2xrPwdmgE3Xc3roHY";
 
 const supabaseClient = supabase.createClient(
@@ -1011,7 +1011,7 @@ const supabaseClient = supabase.createClient(
             }
         }
 
-        // ============ VARC HELPERS ============
+        // ============  HELPERS ============
         function togglePassageFields(section) {
             const questionType = document.getElementById(section + 'QuestionType').value;
             const passageTitleGroup = document.getElementById('passageTitleGroup');
@@ -1127,24 +1127,23 @@ const supabaseClient = supabase.createClient(
 
             let questionData = {};
 
-            if (section === 'varc') {
-                const options = Array.from(document.querySelectorAll('.varcOption')).map(el => el.value);
+            if (section === '') {
+                const options = Array.from(document.querySelectorAll('.Option')).map(el => el.value);
                 questionData = {
                     section: 'VARC',
-                    type: document.getElementById('varcQuestionType').value,
-                    passageTitle: document.getElementById('varcPassageTitle').value,
-                    passageText: document.getElementById('varcPassageText').value,
-                    question: document.getElementById('varcQuestion').value,
+                    type: document.getElementById('QuestionType').value,
+                    passage_title: document.getElementById('PassageTitle').value,
+                    passage_text: document.getElementById('PassageText').value,
+                    question_text: document.getElementById('Question').value,
                     options: options,
-                    correctAnswer: document.getElementById('varcCorrectAnswer').value,
-                    difficulty: document.getElementById('varcDifficulty').value,
-                    topic: document.getElementById('varcTopic').value,
-                    subtopic: document.getElementById('varcSubtopic').value,
-                    timeEstimate: parseInt(document.getElementById('varcTimeEstimate').value),
-                    explanation: document.getElementById('varcExplanation').value,
-                    tags: document.getElementById('varcTags').value.split(',').filter(t => t.trim()),
-                    status: document.getElementById('varcStatus').value,
-                    createdAt: new Date().toISOString()
+                    correct_answer: document.getElementById('CorrectAnswer').value,
+                    difficulty: document.getElementById('Difficulty').value,
+                    topic: document.getElementById('Topic').value,
+                    subtopic: document.getElementById('Subtopic').value,
+                    time_estimate: parseInt(document.getElementById('TimeEstimate').value),
+                    explanation: document.getElementById('Explanation').value,
+                    tags: document.getElementById('Tags').value.split(',').map(t => t.trim()).filter(Boolean),
+                    status: document.getElementById('Status').value
                 };
             } else if (section === 'dilr') {
                 const questions = [];
@@ -1161,30 +1160,36 @@ const supabaseClient = supabase.createClient(
 
                 questionData = {
                     section: 'DILR',
-                    setName: document.getElementById('dilrSetName').value,
-                    setType: document.getElementById('dilrSetType').value,
-                    instruction: document.getElementById('dilrInstruction').value,
-                    imageUrl: document.getElementById('dilrImage').files.length > 0 ? 'image-url-placeholder' : null,
-                    questions: questions,
+                    title: document.getElementById('dilrSetName').value,
+                    type: document.getElementById('dilrSetType').value,
+                    passage_text: document.getElementById('dilrInstruction').value,
+                    question_text: questions[0]?.question || '',
+                    options: questions[0]?.options || [],
+                    correct_answer: questions[0]?.correctAnswer || '',
+                    difficulty: questions[0]?.difficulty || 'Medium',
+                    topic: document.getElementById('dilrSetType').value,
+                    subtopic: '',
+                    time_estimate: 120,
+                    explanation: '',
+                    tags: ['dilr'],
                     status: 'Published',
-                    createdAt: new Date().toISOString()
+                    image_url: document.getElementById('dilrImage').files.length > 0 ? 'image-url-placeholder' : null
                 };
             } else if (section === 'qa') {
                 const options = Array.from(document.querySelectorAll('.qaOption')).map(el => el.value);
                 questionData = {
                     section: 'QA',
                     type: document.getElementById('qaQuestionType').value,
-                    question: document.getElementById('qaQuestion').value,
+                    question_text: document.getElementById('qaQuestion').value,
                     options: options,
-                    correctAnswer: document.getElementById('qaCorrectAnswer').value,
+                    correct_answer: document.getElementById('qaCorrectAnswer').value,
                     difficulty: document.getElementById('qaDifficulty').value,
                     topic: document.getElementById('qaTopic').value,
                     subtopic: document.getElementById('qaSubtopic').value,
-                    timeEstimate: parseInt(document.getElementById('qaTimeEstimate').value),
+                    time_estimate: parseInt(document.getElementById('qaTimeEstimate').value),
                     explanation: document.getElementById('qaExplanation').value,
-                    tags: document.getElementById('qaTags').value.split(',').filter(t => t.trim()),
-                    status: document.getElementById('qaStatus').value,
-                    createdAt: new Date().toISOString()
+                    tags: document.getElementById('qaTags').value.split(',').map(t => t.trim()).filter(Boolean),
+                    status: document.getElementById('qaStatus').value
                 };
             }
 
@@ -1200,33 +1205,9 @@ if (success) {
 
     updateRecentUploadsList();
 
-    document.getElementById(section + 'Form').reset();
+    const formId = section === '' ? 'Form' : section + 'Form';
+    document.getElementById(formId).reset();
 }
-
-            // Store in local storage for demo
-            
-
-            // Show success toast
-
-            // Update recent uploads list
-            updateRecentUploadsList();
-
-            // Reset form
-            document.getElementById(section + 'Form').reset();
-
-            // Log to console (in production, send to Supabase via API)
-            
-
-            // API call example (commented for frontend-only demo):
-            // fetch('/api/questions', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify(questionData)
-            // }).then(res => res.json()).then(data => {
-            //     showToast('Question saved successfully!', 'success');
-            // }).catch(err => {
-            //     showToast('Error saving question: ' + err.message, 'error');
-            // });
         }
 
         function updateRecentUploadsList() {
@@ -1240,7 +1221,7 @@ if (success) {
                 <div class="upload-item">
                     <div>
                         <strong>${q.section}</strong> - ${q.type || 'Question'} 
-                        <span style="color: var(--c-slate-500);">${q.question ? q.question.substring(0, 50) + '...' : q.setName}</span>
+                        <span style="color: var(--c-slate-500);">${q.question_text ? q.question_text.substring(0, 50) + '...' : q.setName}</span>
                     </div>
                     <span class="upload-badge ${q.status === 'Draft' ? 'badge-draft' : 'badge-published'}">
                         ${q.status}
