@@ -714,8 +714,8 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="CorrectAnswer">Correct Answer *</label>
-                                <select id="CorrectAnswer" required>
+                                <label for="correct_answer">Correct Answer *</label>
+                                <select id="correct_answer" required>
                                     <option value="">Select Answer</option>
                                     <option value="A">A</option>
                                     <option value="B">B</option>
@@ -884,8 +884,8 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="qaCorrectAnswer">Correct Answer *</label>
-                                <select id="qaCorrectAnswer" required>
+                                <label for="qacorrect_answer">Correct Answer *</label>
+                                <select id="qacorrect_answer" required>
                                     <option value="">Select Answer</option>
                                     <option value="A">A</option>
                                     <option value="B">B</option>
@@ -1065,7 +1065,7 @@ const supabaseClient = supabase.createClient(
                     <div class="form-row">
                         <div class="form-group">
                             <label for="dilrQ${dilrQuestionCount}Answer">Correct Answer *</label>
-                            <select class="dilrCorrectAnswer" required>
+                            <select class="dilrcorrect_answer" required>
                                 <option value="">Select Answer</option>
                                 <option value="A">A</option>
                                 <option value="B">B</option>
@@ -1136,7 +1136,7 @@ const supabaseClient = supabase.createClient(
                     passage_text: document.getElementById('PassageText').value,
                     question_text: document.getElementById('Question').value,
                     options: options,
-                    correct_answer: document.getElementById('CorrectAnswer').value,
+                    correct_answer: document.getElementById('correct_answer').value,
                     difficulty: document.getElementById('Difficulty').value,
                     topic: document.getElementById('Topic').value,
                     subtopic: document.getElementById('Subtopic').value,
@@ -1153,7 +1153,7 @@ const supabaseClient = supabase.createClient(
                         order: idx + 1,
                         question: qDiv.querySelector('.dilrQuestionText').value,
                         options: options,
-                        correct_answer: qDiv.querySelector('.dilrCorrectAnswer').value,
+                        correct_answer: qDiv.querySelector('.dilrcorrect_answer').value,
                         difficulty: qDiv.querySelector('.dilrDifficulty').value
                     });
                 });
@@ -1182,7 +1182,7 @@ const supabaseClient = supabase.createClient(
                     type: document.getElementById('qaQuestionType').value,
                     question_text: document.getElementById('qaQuestion').value,
                     options: options,
-                    correct_answer: document.getElementById('qaCorrectAnswer').value,
+                    correct_answer: document.getElementById('qacorrect_answer').value,
                     difficulty: document.getElementById('qaDifficulty').value,
                     topic: document.getElementById('qaTopic').value,
                     subtopic: document.getElementById('qaSubtopic').value,
