@@ -1153,7 +1153,7 @@ const supabaseClient = supabase.createClient(
                         order: idx + 1,
                         question: qDiv.querySelector('.dilrQuestionText').value,
                         options: options,
-                        correctAnswer: qDiv.querySelector('.dilrCorrectAnswer').value,
+                        correct_answer: qDiv.querySelector('.dilrCorrectAnswer').value,
                         difficulty: qDiv.querySelector('.dilrDifficulty').value
                     });
                 });
@@ -1165,7 +1165,7 @@ const supabaseClient = supabase.createClient(
                     passage_text: document.getElementById('dilrInstruction').value,
                     question_text: questions[0]?.question || '',
                     options: questions[0]?.options || [],
-                    correct_answer: questions[0]?.correctAnswer || '',
+                    correct_answer: questions[0]?.correct_answer || '',
                     difficulty: questions[0]?.difficulty || 'Medium',
                     topic: document.getElementById('dilrSetType').value,
                     subtopic: '',
