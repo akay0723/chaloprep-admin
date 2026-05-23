@@ -255,6 +255,7 @@
             opacity: 0.8;
         }
     </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="login-container">
@@ -288,37 +289,26 @@
                     <button type="submit" class="btn-primary" id="loginBtn">
                         <span id="btnText">Sign In</span>
                     </button>
-                    <button type="button" class="btn-secondary" onclick="fillDemoCredentials()">
-                        Demo Creds
-                    </button>
                 </div>
             </form>
-
-            <div class="demo-info">
-                <strong>📌 Demo Credentials:</strong>
-                Email: admin@chaloprep.com<br>
-                Password: ChaloPrep@0123
-            </div>
         </div>
     </div>
 
     <script>
+        const SUPABASE_URL = "https://yhufgyeeqjdnmilnihbt.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodWZneWVlcWpkbm1pbG5paGJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0Njk3ODcsImV4cCI6MjA5NDA0NTc4N30.eSigz2_Ll3EGpw-MLsn2toAa4-2xrPwdmgE3Xc3roHY";
+        const supabaseClient = supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY
+        );
         // Check if already logged in
-        window.addEventListener('load', () => {
-            if (isAdminLoggedIn()) {
+        window.addEventListener('load', async () => {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            if (session) {
                 window.location.href = 'admin-dashboard.html';
             }
         });
-
-        function isAdminLoggedIn() {
-            return localStorage.getItem('adminToken') !== null;
-        }
-
-        function fillDemoCredentials() {
-            document.getElementById('email').value = 'admin@chaloprep.com';
-            document.getElementById('password').value = 'ChaloPrep@0123';
-            document.getElementById('email').focus();
-        }
 
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
@@ -334,13 +324,12 @@
             document.getElementById('errorMessage').classList.remove('show');
         }
 
-        function handleLogin(event) {
+        async function handleLogin(event) {
             event.preventDefault();
-
+            
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
-
-            // Show loading state
+            
             const loginBtn = document.getElementById('loginBtn');
             const btnText = document.getElementById('btnText');
             const originalText = btnText.textContent;
@@ -348,47 +337,26 @@
             loginBtn.classList.add('loading');
             loginBtn.disabled = true;
             btnText.innerHTML = '<span class="spinner"></span>Signing in...';
-
-            // Simulate API call delay
-            setTimeout(() => {
-                // Hardcoded admin credentials
-                const validEmail = 'admin@chaloprep.com';
-                const validPassword = 'ChaloPrep@0123';
-
-                if (email === validEmail && password === validPassword) {
-                    // Create admin token
-                    const token = btoa(JSON.stringify({
-                        email: email,
-                        role: 'admin',
-                        loginTime: new Date().toISOString()
-                    }));
-
-                    localStorage.setItem('adminToken', token);
-                    localStorage.setItem('adminEmail', email);
-
-                    showSuccess('Login successful! Redirecting...');
-                    setTimeout(() => {
-                        window.location.href = 'admin-dashboard.html';
-                    }, 800);
-                } else {
-                    showError('Invalid email or password. Please try again.');
-                    loginBtn.classList.remove('loading');
-                    loginBtn.disabled = false;
-                    btnText.textContent = originalText;
-                }
-            }, 600);
-        }
-
-        function redirectHome() {
-            window.location.href = 'index.html';
-        }
-
-        // Allow Enter key to submit form
-        document.getElementById('loginForm').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleLogin(e);
+            
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+            
+            if (error) {
+                showError('Invalid email or password.');
+                loginBtn.classList.remove('loading');
+                loginBtn.disabled = false;
+                btnText.textContent = originalText;
+                return;
             }
-        });
+            
+            showSuccess('Login successful! Redirecting...');
+            
+            setTimeout(() => {
+                window.location.href = 'admin-dashboard.html';
+            }, 800);
+        }
     </script>
 </body>
 </html>
