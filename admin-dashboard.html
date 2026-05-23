@@ -969,17 +969,17 @@ const supabaseClient = supabase.createClient(
     SUPABASE_ANON_KEY
 );
         // ============ AUTH CHECK ============
-        window.addEventListener('load', () => {
-            const token = localStorage.getItem('adminToken');
-            const email = localStorage.getItem('adminEmail');
-
-            if (!token) {
-                window.location.href = 'index.html';
+        window.addEventListener('load', async () => {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            if (!session) {
+                window.location.replace('index.html');
                 return;
             }
-
-            document.getElementById('adminEmail').textContent = email || 'admin@chaloprep.com';
+            
+            document.getElementById('adminEmail').textContent = session.user.email || 'Admin';
         });
+        
 
         // ============ STATE & DATA ============
         let recentUploads = [];
@@ -1244,13 +1244,13 @@ if (success) {
         }
 
         // ============ LOGOUT ============
-        function logout() {
+        async function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('adminToken');
-                localStorage.removeItem('adminEmail');
-                window.location.href = 'index.html';
+                await supabaseClient.auth.signOut();
+                window.location.replace('index.html');
             }
         }
+        
 
         // ============ FILE UPLOAD HANDLER ============
         document.getElementById('dilrImage').addEventListener('change', (e) => {
