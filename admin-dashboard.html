@@ -286,15 +286,69 @@ async function loadAuxiliary(){
 }
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 
-document.querySelectorAll('[data-section]').forEach(btn=>btn.addEventListener('click',()=>{
-  state.section=btn.dataset.section;
-  document.querySelectorAll('[data-section]').forEach(x=>x.classList.remove('active'));
-  btn.classList.add('active');
-  $('section').value=state.section;
-  $('structureChoices').innerHTML=structures[state.section].map(([v,l])=>`<button type="button" class="choice" data-structure="${v}"><div class="font-extrabold">${l}</div><div class="text-sm text-slate-500 mt-1">${structureHint(v)}</div></button>`).join('');
-  $('structureWrap').classList.remove('hidden');
-  document.querySelectorAll('[data-structure]').forEach(b=>b.addEventListener('click',()=>chooseStructure(b.dataset.structure)));
-}));
+document.querySelectorAll('[data-section]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+
+    const newSection = btn.dataset.section;
+
+    // Update selected section
+    state.section = newSection;
+    $('section').value = newSection;
+
+    // Highlight selected section
+    document.querySelectorAll('[data-section]')
+      .forEach(x => x.classList.remove('active'));
+
+    btn.classList.add('active');
+
+    // IMPORTANT:
+    // Clear taxonomy from previously selected section
+    $('topic').value = '';
+
+    $('subtopic').innerHTML =
+      '<option value="">Select sub-topic</option>';
+
+    $('concept').innerHTML =
+      '<option value="">Select concept</option>';
+
+    $('subtopic').disabled = true;
+    $('concept').disabled = true;
+
+    // Clear derived tags
+    $('derivedTags').textContent =
+      'Tags will be derived from the selected taxonomy when the tag list is populated.';
+
+    // Load structures for the selected section
+    $('structureChoices').innerHTML =
+      structures[newSection]
+        .map(([v, l]) => `
+          <button
+            type="button"
+            class="choice"
+            data-structure="${v}"
+          >
+            <div class="font-extrabold">${l}</div>
+            <div class="text-sm text-slate-500 mt-1">
+              ${structureHint(v)}
+            </div>
+          </button>
+        `)
+        .join('');
+
+    $('structureWrap').classList.remove('hidden');
+
+    // Attach structure selection events
+    document.querySelectorAll('[data-structure]')
+      .forEach(b => {
+        b.addEventListener('click', () => {
+          chooseStructure(b.dataset.structure);
+        });
+      });
+
+    // Load topics for the NEW section
+    await loadTopics();
+  });
+});
 function structureHint(v){
   return ({standalone:'One independent question',standalone_visual:'One question with one visual',set_question:'Multiple linked questions in one DILR set',va_standalone:'Independent verbal ability question',rc_question:'One passage with linked RC questions'})[v];
 }
