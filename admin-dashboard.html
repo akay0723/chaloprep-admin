@@ -737,6 +737,711 @@ $('questionForm').addEventListener('submit',async e=>{
 });
 $('resetAll').addEventListener('click',()=>location.reload());
 $('logout').addEventListener('click',async()=>{await sb.auth.signOut();location.href='index.html';});
+/* =========================================================
+   ANALYTICS
+   ========================================================= */
+
+let analyticsRows = [];
+let analyticsTopics = [];
+let analyticsCharts = {};
+
+
+/* ---------- View switching ---------- */
+
+$('tabAnalytics').addEventListener('click', async () => {
+
+  $('uploadView').classList.add('hidden');
+  $('analyticsView').classList.remove('hidden');
+
+  $('tabAnalytics').classList.add('active');
+  $('tabUpload').classList.remove('active');
+
+  await loadAnalytics();
+
+});
+
+
+$('tabUpload').addEventListener('click', () => {
+
+  $('analyticsView').classList.add('hidden');
+  $('uploadView').classList.remove('hidden');
+
+  $('tabUpload').classList.add('active');
+  $('tabAnalytics').classList.remove('active');
+
+});
+
+
+/* ---------- Analytics years ---------- */
+
+function setAnalyticsYears(){
+
+  const yearSelect = $('aYear');
+
+  if(!yearSelect) return;
+
+  yearSelect.innerHTML =
+    '<option value="">All Years</option>';
+
+  for(let y = 2025; y >= 2020; y--){
+
+    yearSelect.insertAdjacentHTML(
+      'beforeend',
+      `<option value="${y}">${y}</option>`
+    );
+
+  }
+
+}
+
+
+/* ---------- Load questions + topics ---------- */
+
+async function loadAnalytics(){
+
+  $('analyticsStatus').textContent =
+    'Loading question bank…';
+
+
+  const [
+    questionsResult,
+    topicsResult
+  ] = await Promise.all([
+
+    sb
+      .from('questions')
+      .select(`
+        id,
+        question_id,
+        exam_year,
+        slot,
+        section,
+        content_structure,
+        source,
+        topic_id,
+        difficulty,
+        attempt_worthiness,
+        min_expected_time,
+        target_time,
+        max_expected_time,
+        solution_approach
+      `),
+
+    sb
+      .from('topics')
+      .select('id,name,section')
+      .order('name')
+
+  ]);
+
+
+  if(questionsResult.error){
+
+    console.error(
+      'Analytics question error:',
+      questionsResult.error
+    );
+
+    $('analyticsStatus').textContent =
+      'Unable to load questions: ' +
+      questionsResult.error.message;
+
+    return;
+
+  }
+
+
+  if(topicsResult.error){
+
+    console.error(
+      'Analytics topic error:',
+      topicsResult.error
+    );
+
+    $('analyticsStatus').textContent =
+      'Unable to load topics: ' +
+      topicsResult.error.message;
+
+    return;
+
+  }
+
+
+  analyticsRows =
+    questionsResult.data || [];
+
+  analyticsTopics =
+    topicsResult.data || [];
+
+
+  populateAnalyticsTopics();
+
+  renderAnalytics();
+
+}
+
+
+/* ---------- Topic filter ---------- */
+
+function populateAnalyticsTopics(){
+
+  const section =
+    $('aSection').value;
+
+  const topicList =
+    analyticsTopics.filter(topic =>
+      !section ||
+      topic.section === section
+    );
+
+
+  $('aTopic').innerHTML =
+    '<option value="">All Topics</option>' +
+
+    topicList.map(topic => `
+      <option value="${topic.id}">
+        ${escapeHtml(topic.name)}
+      </option>
+    `).join('');
+
+}
+
+
+/* ---------- Filtering ---------- */
+
+function getFilteredAnalyticsRows(){
+
+  const section =
+    $('aSection').value;
+
+  const year =
+    $('aYear').value;
+
+  const slot =
+    $('aSlot').value;
+
+  const structure =
+    $('aStructure').value;
+
+  const topic =
+    $('aTopic').value;
+
+  const difficulty =
+    $('aDifficulty').value;
+
+  const source =
+    $('aSource').value;
+
+
+  return analyticsRows.filter(row => {
+
+    if(section &&
+       row.section !== section)
+      return false;
+
+    if(year &&
+       String(row.exam_year) !== year)
+      return false;
+
+    if(slot &&
+       String(row.slot) !== slot)
+      return false;
+
+    if(structure &&
+       row.content_structure !== structure)
+      return false;
+
+    if(topic &&
+       String(row.topic_id) !== topic)
+      return false;
+
+    if(difficulty &&
+       row.difficulty !== difficulty)
+      return false;
+
+    if(source &&
+       row.source !== source)
+      return false;
+
+    return true;
+
+  });
+
+}
+
+
+/* ---------- Count helper ---------- */
+
+function analyticsCounts(rows,key,order){
+
+  const counts = {};
+
+  rows.forEach(row => {
+
+    const value =
+      row[key] || 'Unknown';
+
+    counts[value] =
+      (counts[value] || 0) + 1;
+
+  });
+
+
+  const labels =
+    order.filter(label =>
+      counts[label] !== undefined
+    );
+
+
+  const values =
+    labels.map(label =>
+      counts[label]
+    );
+
+
+  return {
+    labels,
+    values
+  };
+
+}
+
+
+/* ---------- Chart ---------- */
+
+function drawAnalyticsChart(
+  canvasId,
+  type,
+  labels,
+  values
+){
+
+  if(analyticsCharts[canvasId]){
+
+    analyticsCharts[canvasId].destroy();
+
+  }
+
+
+  const canvas =
+    $(canvasId);
+
+  if(!canvas) return;
+
+
+  analyticsCharts[canvasId] =
+    new Chart(
+      canvas,
+      {
+        type,
+
+        data:{
+          labels,
+
+          datasets:[
+            {
+              data:values,
+
+              backgroundColor:[
+                '#0B2A5B',
+                '#64748B',
+                '#94A3B8',
+                '#CBD5E1',
+                '#F97316',
+                '#E2E8F0'
+              ],
+
+              borderColor:'#FFFFFF',
+
+              borderWidth:1
+            }
+          ]
+        },
+
+        options:{
+          responsive:true,
+
+          maintainAspectRatio:false,
+
+          plugins:{
+            legend:{
+              display:type !== 'bar',
+              position:'bottom'
+            }
+          },
+
+          scales:
+            type === 'bar'
+              ? {
+                  y:{
+                    beginAtZero:true,
+
+                    ticks:{
+                      precision:0
+                    }
+                  }
+                }
+              : undefined
+
+        }
+
+      }
+    );
+
+}
+
+
+/* ---------- Main analytics renderer ---------- */
+
+function renderAnalytics(){
+
+  const rows =
+    getFilteredAnalyticsRows();
+
+
+  $('analyticsStatus').textContent =
+    `Showing ${rows.length} of ${analyticsRows.length} questions`;
+
+
+  /* KPI */
+
+  $('aTotal').textContent =
+    rows.length;
+
+
+  $('aQA').textContent =
+    rows.filter(row =>
+      row.section === 'QA'
+    ).length;
+
+
+  $('aDILR').textContent =
+    rows.filter(row =>
+      row.section === 'DILR'
+    ).length;
+
+
+  $('aVARC').textContent =
+    rows.filter(row =>
+      row.section === 'VARC'
+    ).length;
+
+
+  /* Year */
+
+  let result =
+    analyticsCounts(
+      rows,
+      'exam_year',
+      [
+        '2020',
+        '2021',
+        '2022',
+        '2023',
+        '2024',
+        '2025'
+      ]
+    );
+
+
+  drawAnalyticsChart(
+    'aYearChart',
+    'bar',
+    result.labels,
+    result.values
+  );
+
+
+  /* Section */
+
+  result =
+    analyticsCounts(
+      rows,
+      'section',
+      [
+        'QA',
+        'DILR',
+        'VARC'
+      ]
+    );
+
+
+  drawAnalyticsChart(
+    'aSectionChart',
+    'doughnut',
+    result.labels,
+    result.values
+  );
+
+
+  /* Difficulty */
+
+  result =
+    analyticsCounts(
+      rows,
+      'difficulty',
+      [
+        'Easy',
+        'Moderate',
+        'Difficult'
+      ]
+    );
+
+
+  drawAnalyticsChart(
+    'aDifficultyChart',
+    'doughnut',
+    result.labels,
+    result.values
+  );
+
+
+  /* Structure */
+
+  result =
+    analyticsCounts(
+      rows,
+      'content_structure',
+      [
+        'standalone',
+        'standalone_visual',
+        'set_question',
+        'va_standalone',
+        'rc_question'
+      ]
+    );
+
+
+  drawAnalyticsChart(
+    'aStructureChart',
+    'bar',
+    result.labels,
+    result.values
+  );
+
+
+  renderTopicCoverage(rows);
+
+  renderAnalyticsChecks(rows);
+
+}
+
+
+/* ---------- Topic coverage ---------- */
+
+function renderTopicCoverage(rows){
+
+  const counts = {};
+
+
+  rows.forEach(row => {
+
+    const topic =
+      analyticsTopics.find(
+        item =>
+          String(item.id) ===
+          String(row.topic_id)
+      );
+
+
+    const name =
+      topic?.name ||
+      'Unassigned';
+
+
+    counts[name] =
+      (counts[name] || 0) + 1;
+
+  });
+
+
+  const entries =
+    Object.entries(counts)
+      .sort((a,b) => b[1] - a[1]);
+
+
+  if(!entries.length){
+
+    $('aTopicTable').innerHTML = `
+      <div class="text-sm"
+           style="color:var(--body-text)">
+        No questions match the current filters.
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  const max =
+    Math.max(
+      ...entries.map(
+        entry => entry[1]
+      )
+    );
+
+
+  $('aTopicTable').innerHTML =
+    entries.map(
+      ([name,count]) => {
+
+        const width =
+          max
+            ? (count / max) * 100
+            : 0;
+
+
+        return `
+          <div class="flex items-center gap-3 mb-3">
+
+            <div class="w-40 text-sm font-medium truncate"
+                 title="${escapeHtml(name)}">
+              ${escapeHtml(name)}
+            </div>
+
+            <div class="analytics-bar flex-1">
+              <div style="width:${width}%"></div>
+            </div>
+
+            <div class="w-8 text-right text-sm font-bold">
+              ${count}
+            </div>
+
+          </div>
+        `;
+
+      }
+    ).join('');
+
+}
+
+
+/* ---------- Data quality checks ---------- */
+
+function renderAnalyticsChecks(rows){
+
+  const checks = [
+
+    {
+      name:'Missing topic',
+      count:rows.filter(row =>
+        !row.topic_id
+      ).length
+    },
+
+    {
+      name:'Missing difficulty',
+      count:rows.filter(row =>
+        !row.difficulty
+      ).length
+    },
+
+    {
+      name:'Missing attempt worthiness',
+      count:rows.filter(row =>
+        !row.attempt_worthiness
+      ).length
+    },
+
+    {
+      name:'Missing solution approach',
+      count:rows.filter(row =>
+        !row.solution_approach ||
+        !row.solution_approach.trim()
+      ).length
+    },
+
+    {
+      name:'Incomplete time data',
+      count:rows.filter(row =>
+        !(Number(row.min_expected_time) > 0) ||
+        !(Number(row.target_time) > 0) ||
+        !(Number(row.max_expected_time) > 0)
+      ).length
+    }
+
+  ];
+
+
+  $('aChecks').innerHTML =
+    checks.map(check => {
+
+      const good =
+        check.count === 0;
+
+
+      return `
+        <div class="flex items-center justify-between
+                    p-3 rounded-xl bg-slate-50">
+
+          <span class="text-sm font-medium">
+            ${check.name}
+          </span>
+
+          <span
+            class="badge"
+            style="
+              background:${good ? '#ECFDF5' : '#FFF7ED'};
+              color:${good ? '#047857' : '#C2410C'};
+            "
+          >
+            ${check.count}
+            ${check.count === 1 ? 'issue' : 'issues'}
+          </span>
+
+        </div>
+      `;
+
+    }).join('');
+
+}
+
+
+/* ---------- Analytics filters ---------- */
+
+[
+  'aSection',
+  'aYear',
+  'aSlot',
+  'aStructure',
+  'aTopic',
+  'aDifficulty',
+  'aSource'
+
+].forEach(id => {
+
+  $(id).addEventListener(
+    'change',
+    () => {
+
+      if(id === 'aSection'){
+
+        populateAnalyticsTopics();
+
+      }
+
+      renderAnalytics();
+
+    }
+  );
+
+});
+
+
+/* ---------- Refresh ---------- */
+
+$('refreshAnalytics')
+  .addEventListener(
+    'click',
+    loadAnalytics
+  );
+
+
+/* ---------- Initialize analytics years ---------- */
+
+setAnalyticsYears();
+  
 init();
 </script>
 </body>
