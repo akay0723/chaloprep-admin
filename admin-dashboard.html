@@ -748,27 +748,23 @@ let analyticsCharts = {};
 
 /* ---------- View switching ---------- */
 
+let inAnalytics = false;
+
 $('tabAnalytics').addEventListener('click', async () => {
+  inAnalytics = !inAnalytics;
 
-  $('uploadView').classList.add('hidden');
-  $('analyticsView').classList.remove('hidden');
-
-  $('tabAnalytics').classList.add('active');
-  $('tabUpload').classList.remove('active');
-
-  await loadAnalytics();
-
-});
-
-
-$('tabUpload').addEventListener('click', () => {
-
-  $('analyticsView').classList.add('hidden');
-  $('uploadView').classList.remove('hidden');
-
-  $('tabUpload').classList.add('active');
-  $('tabAnalytics').classList.remove('active');
-
+  if (inAnalytics) {
+    $('dashboard').classList.add('hidden');
+    $('analyticsView').classList.remove('hidden');
+    $('tabAnalytics').textContent = 'Question Manager';
+    $('tabAnalytics').classList.add('active');
+    await loadAnalytics();
+  } else {
+    $('analyticsView').classList.add('hidden');
+    $('dashboard').classList.remove('hidden');
+    $('tabAnalytics').textContent = 'Analytics';
+    $('tabAnalytics').classList.remove('active');
+  }
 });
 
 
