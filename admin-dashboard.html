@@ -6,6 +6,7 @@
 <title>ChaloPrep — Question Manager</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4"></script>
 <style>
   :root{
     --cream:#faf8f2;
@@ -67,6 +68,62 @@
   .editor{min-height:150px;border:1px solid #dfe1ea;border-radius:10px;padding:.8rem;outline:none;color:var(--ink)}
   .editor:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(244,118,31,.14)}
   ::selection{background:rgba(244,118,31,.22)}
+
+  /* Analytics */
+  .navtab{
+    border:1px solid transparent;
+    border-radius:10px;
+    padding:.65rem .9rem;
+    font-weight:800;
+    color:#243B64;
+    background:transparent;
+    cursor:pointer;
+  }
+  
+  .navtab:hover{
+    background:#E8EEF8;
+  }
+  
+  .navtab.active{
+    background:#E3EAF5;
+    color:#0B2A5B;
+    border-color:#C9D5E8;
+  }
+  
+  .analytics-stat{
+    font-size:1.8rem;
+    font-weight:900;
+    letter-spacing:-.03em;
+  }
+  
+  .analytics-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:1.25rem;
+  }
+  
+  @media(max-width:800px){
+    .analytics-grid{
+      grid-template-columns:1fr;
+    }
+  }
+  
+  .analytics-chart{
+    min-height:320px;
+  }
+  
+  .analytics-bar{
+    height:8px;
+    background:#edf1f6;
+    border-radius:999px;
+    overflow:hidden;
+  }
+  
+  .analytics-bar > div{
+    height:100%;
+    background:#0B2A5B;
+    border-radius:999px;
+  }
 </style>
 </head>
 <body>
@@ -88,6 +145,10 @@
           class="text-sm font-medium"
           style="color:#243B64">
         </span>
+
+        <button id="tabAnalytics" class="navtab" type="button">
+          Analytics
+        </button>
         
         <button
           id="logout"
@@ -241,6 +302,208 @@
         </section>
       </form>
     </div>
+    <!-- ANALYTICS VIEW -->
+<div id="analyticsView" class="hidden">
+
+  <!-- Filters -->
+  <section class="card p-6 mb-6">
+
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
+      <div>
+        <div class="section-title">Question Bank Analytics</div>
+        <div class="text-sm mt-1" style="color:var(--body-text)">
+          Live statistics from the ChaloPrep question bank.
+        </div>
+      </div>
+
+      <button id="refreshAnalytics"
+              type="button"
+              class="btn primary">
+        Refresh
+      </button>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+
+      <div>
+        <label class="label">Section</label>
+        <select id="aSection" class="input">
+          <option value="">All Sections</option>
+          <option value="QA">QA</option>
+          <option value="DILR">DILR</option>
+          <option value="VARC">VARC</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Year</label>
+        <select id="aYear" class="input">
+          <option value="">All Years</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Slot</label>
+        <select id="aSlot" class="input">
+          <option value="">All Slots</option>
+          <option value="1">Slot 1</option>
+          <option value="2">Slot 2</option>
+          <option value="3">Slot 3</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Structure</label>
+        <select id="aStructure" class="input">
+          <option value="">All Structures</option>
+          <option value="standalone">Standalone</option>
+          <option value="standalone_visual">Standalone + Visual</option>
+          <option value="set_question">DILR Set Question</option>
+          <option value="va_standalone">VA Standalone</option>
+          <option value="rc_question">RC Question</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Topic</label>
+        <select id="aTopic" class="input">
+          <option value="">All Topics</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Difficulty</label>
+        <select id="aDifficulty" class="input">
+          <option value="">All Difficulty</option>
+          <option value="Easy">Easy</option>
+          <option value="Moderate">Moderate</option>
+          <option value="Difficult">Difficult</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Source</label>
+        <select id="aSource" class="input">
+          <option value="">All Sources</option>
+          <option value="PYQ">PYQ</option>
+        </select>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- Status -->
+  <div id="analyticsStatus"
+       class="text-sm mb-4"
+       style="color:var(--body-text)">
+    Loading analytics…
+  </div>
+
+
+  <!-- KPI CARDS -->
+  <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+    <div class="card p-5">
+      <div class="text-xs font-bold" style="color:var(--body-text)">
+        Total Questions
+      </div>
+      <div id="aTotal"
+           class="analytics-stat"
+           style="color:var(--navy-900)">
+        0
+      </div>
+    </div>
+
+    <div class="card p-5">
+      <div class="text-xs font-bold" style="color:var(--body-text)">
+        QA
+      </div>
+      <div id="aQA" class="analytics-stat">0</div>
+    </div>
+
+    <div class="card p-5">
+      <div class="text-xs font-bold" style="color:var(--body-text)">
+        DILR
+      </div>
+      <div id="aDILR" class="analytics-stat">0</div>
+    </div>
+
+    <div class="card p-5">
+      <div class="text-xs font-bold" style="color:var(--body-text)">
+        VARC
+      </div>
+      <div id="aVARC" class="analytics-stat">0</div>
+    </div>
+
+  </section>
+
+
+  <!-- CHARTS -->
+  <section class="analytics-grid mb-6">
+
+    <div class="card p-5 analytics-chart">
+      <div class="font-extrabold mb-3">
+        Questions by Year
+      </div>
+      <canvas id="aYearChart"></canvas>
+    </div>
+
+    <div class="card p-5 analytics-chart">
+      <div class="font-extrabold mb-3">
+        Section Distribution
+      </div>
+      <canvas id="aSectionChart"></canvas>
+    </div>
+
+    <div class="card p-5 analytics-chart">
+      <div class="font-extrabold mb-3">
+        Difficulty Distribution
+      </div>
+      <canvas id="aDifficultyChart"></canvas>
+    </div>
+
+    <div class="card p-5 analytics-chart">
+      <div class="font-extrabold mb-3">
+        Content Structure
+      </div>
+      <canvas id="aStructureChart"></canvas>
+    </div>
+
+  </section>
+
+
+  <!-- COVERAGE -->
+  <section class="grid lg:grid-cols-2 gap-6">
+
+    <div class="card p-6">
+      <div class="section-title mb-4">
+        Topic Coverage
+      </div>
+
+      <div id="aTopicTable">
+        <div class="text-sm" style="color:var(--body-text)">
+          No data yet.
+        </div>
+      </div>
+    </div>
+
+
+    <div class="card p-6">
+      <div class="section-title mb-4">
+        Question Bank Checks
+      </div>
+
+      <div id="aChecks">
+        <div class="text-sm" style="color:var(--body-text)">
+          No data yet.
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+</div>
   </main>
 
   <footer style="background:var(--navy-950)" class="mt-10">
