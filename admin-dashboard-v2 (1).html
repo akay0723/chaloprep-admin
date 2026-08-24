@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChaloPrep — Question Manager</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --cream:#faf8f2;
+    --cream-2:#f3efe4;
+    --navy-950:#0a1c38;
+    --navy-900:#0f2647;
+    --navy-800:#1a3560;
+    --ink:#101f3d;
+    --body-text:#5b6472;
+    --orange:#f4761f;
+    --orange-dark:#dd6512;
+    --orange-tint:#fff1e5;
+    --orange-tint-text:#b34d0a;
+    --border:#e7e2d5;
+    --border-soft:#eceff5;
+  }
+  /* ChaloPrep responsive logo */
+.brand-logo {
+  width: clamp(38px, 5vw, 52px);
+  height: clamp(38px, 5vw, 52px);
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  flex-shrink: 0;
+}
+
+.brand-text {
+  min-width: 0;
+}
+
+.brand-title {
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.brand-subtitle {
+  font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+  line-height: 1.2;
+  color: #cbd5e1;
+}
+  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
+  .card{background:#fff;border:1px solid var(--border-soft);border-radius:16px;box-shadow:0 6px 20px rgba(16,31,61,.05)}
+  .input{width:100%;border:1px solid #dfe1ea;border-radius:10px;padding:.7rem .8rem;outline:none;background:#fff;color:var(--ink);transition:border-color .15s, box-shadow .15s}
+  .input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(244,118,31,.14)}
+  .label{font-size:.82rem;font-weight:700;color:var(--body-text);margin-bottom:.35rem;display:block;letter-spacing:.01em}
+  .btn{border-radius:10px;padding:.7rem 1rem;font-weight:700;transition:background-color .15s, transform .1s}
+  .btn:active{transform:translateY(1px)}
+  .primary{background:var(--orange);color:#fff;box-shadow:0 4px 14px rgba(244,118,31,.28)}.primary:hover{background:var(--orange-dark)}
+  .muted{background:var(--cream-2);color:var(--navy-900)}.muted:hover{background:#eae5d7}
+  .danger{background:#fee2e2;color:#991b1b}
+  .section-title{font-size:1rem;font-weight:800;color:var(--ink);letter-spacing:.01em}
+  .required:after{content:" *";color:var(--orange-dark)}
+  .hidden{display:none}
+  .pill{display:inline-flex;align-items:center;padding:.35rem .65rem;border-radius:999px;background:var(--orange-tint);color:var(--orange-tint-text);font-size:.75rem;font-weight:700;letter-spacing:.02em}
+  .choice{border:1px solid #e3e6ee;border-radius:14px;padding:1rem;text-align:left;cursor:pointer;background:#fff;transition:border-color .15s, background-color .15s, box-shadow .15s}
+  .choice:hover{border-color:var(--orange);background:var(--orange-tint)}
+  .choice.active{border-color:var(--orange);background:var(--orange-tint);box-shadow:0 0 0 2px rgba(244,118,31,.15)}
+  .editor{min-height:150px;border:1px solid #dfe1ea;border-radius:10px;padding:.8rem;outline:none;color:var(--ink)}
+  .editor:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(244,118,31,.14)}
+  ::selection{background:rgba(244,118,31,.22)}
+</style>
+</head>
+<body>
+<div id="app" class="min-h-screen">
+  <header style="background:var(--navy-950)" class="text-white border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="chaloprep-logo.png"
+        alt="ChaloPrep Logo"
+        class="brand-logo">
+        <div>
+          <div class="font-extrabold tracking-tight text-[1.05rem]">ChaloPrep</div>
+          <div class="text-xs" style="color:#9aa7c2">Question Manager</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="userEmail" class="text-sm" style="color:#c3cbe0"></span>
+        <button id="logout" class="btn bg-white/10 hover:bg-white/15">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-5 py-8">
+    <div id="authState" class="card p-6 mb-6" style="color:var(--body-text)">Checking authentication…</div>
+
+    <div id="dashboard" class="hidden">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+        <div>
+          <div class="text-xs font-bold tracking-widest uppercase mb-1" style="color:var(--orange-dark)">Admin · Content Ops</div>
+          <h1 class="text-3xl font-black tracking-tight" style="color:var(--ink)">Question Manager</h1>
+          <p class="mt-1" style="color:var(--body-text)">Create CAT questions using the approved content structures.</p>
+        </div>
+        <button id="resetAll" class="btn muted">Reset form</button>
+      </div>
+
+      <div id="stepChooser" class="card p-6 mb-6">
+        <div class="section-title mb-4">1. Select section</div>
+        <div class="grid md:grid-cols-3 gap-4">
+          <button class="choice" data-section="QA"><div class="font-extrabold">QA</div><div class="text-sm text-slate-500 mt-1">Quantitative Aptitude</div></button>
+          <button class="choice" data-section="DILR"><div class="font-extrabold">DILR</div><div class="text-sm text-slate-500 mt-1">Data Interpretation & Logical Reasoning</div></button>
+          <button class="choice" data-section="VARC"><div class="font-extrabold">VARC</div><div class="text-sm text-slate-500 mt-1">Verbal Ability & Reading Comprehension</div></button>
+        </div>
+
+        <div id="structureWrap" class="hidden mt-6">
+          <div class="section-title mb-4">2. Select content structure</div>
+          <div id="structureChoices" class="grid md:grid-cols-3 gap-4"></div>
+        </div>
+      </div>
+
+      <form id="questionForm" class="hidden space-y-6">
+        <input type="hidden" id="contentStructure">
+        <input type="hidden" id="section">
+
+        <section class="card p-6">
+          <div class="section-title mb-5">Basic identification</div>
+          <div class="grid md:grid-cols-4 gap-4">
+            <div><label class="label">Question ID</label><input id="questionIdPreview" class="input bg-slate-50" readonly value="Will be generated on save"></div>
+            <div><label class="label">Exam</label><input class="input bg-slate-50" value="CAT" readonly></div>
+            <div><label class="label required">Year</label><select id="year" class="input" required><option value="">Select</option></select></div>
+            <div><label class="label required">Slot</label><select id="slot" class="input" required><option value="">Select</option><option value="1">Slot 1</option><option value="2">Slot 2</option><option value="3">Slot 3</option></select></div>
+          </div>
+        </section>
+
+        <section id="setMeta" class="card p-6 hidden">
+          <div class="section-title mb-5">Set information</div>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div><label class="label required">Number of questions</label><input id="setQuestionCount" type="number" min="1" max="20" class="input"></div>
+            <div><label class="label">Set title</label><input id="setTitle" class="input"></div>
+            <div><label class="label">Set type</label><input id="setType" class="input"></div>
+          </div>
+          <div class="mt-4"><label class="label">Set instructions</label><textarea id="setInstructions" class="input min-h-24"></textarea></div>
+        </section>
+
+        <section id="rcMeta" class="card p-6 hidden">
+          <div class="section-title mb-5">RC passage</div>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div><label class="label">Passage title</label><input id="passageTitle" class="input"></div>
+            <div><label class="label required">Passage domain</label><input id="passageDomain" class="input"></div>
+            <div><label class="label">Passage complexity</label><input id="passageComplexity" class="input"></div>
+          </div>
+          <div class="mt-4"><label class="label required">Passage</label><div id="passageEditor" class="editor" contenteditable="true"></div></div>
+          <div class="mt-4 text-sm text-slate-500">Word count: <span id="wordCount">0</span></div>
+        </section>
+
+        <section id="questionCore" class="card p-6">
+          <div class="section-title mb-5">Question</div>
+          <div class="mb-5">
+            <label class="label required">Answer type</label>
+            <div class="flex gap-3">
+              <label class="flex items-center gap-2"><input type="radio" name="answerType" value="MCQ" checked> MCQ</label>
+              <label class="flex items-center gap-2"><input type="radio" name="answerType" value="TITA"> TITA</label>
+            </div>
+          </div>
+          <label class="label required">Question text</label>
+          <div id="questionEditor" class="editor" contenteditable="true"></div>
+
+          <div id="optionsWrap" class="grid md:grid-cols-2 gap-4 mt-5">
+            <div><label class="label required">Option A</label><input id="optA" class="input"></div>
+            <div><label class="label required">Option B</label><input id="optB" class="input"></div>
+            <div><label class="label required">Option C</label><input id="optC" class="input"></div>
+            <div><label class="label required">Option D</label><input id="optD" class="input"></div>
+          </div>
+          <div class="mt-5">
+            <label class="label required">Correct answer</label>
+            <input id="correctAnswer" class="input" placeholder="A / B / C / D">
+          </div>
+        </section>
+
+        <section id="visualWrap" class="card p-6 hidden">
+          <div class="flex items-center justify-between mb-5"><div class="section-title">Visual</div><span class="pill">1 visual • max 5 MB</span></div>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div><label class="label required">Visual type</label><select id="visualType" class="input"><option value="">Select</option><option>Diagram</option><option>Graph</option><option>Table</option><option>Figure</option><option>Geometry Figure</option><option>Chart</option><option>Network</option><option>Other</option></select></div>
+            <div><label class="label required">File</label><input id="visualFile" type="file" accept="image/png,image/jpeg,image/webp" class="input"></div>
+          </div>
+          <div class="mt-4"><label class="label">Caption / description</label><input id="visualCaption" class="input"></div>
+          <p id="visualError" class="text-sm text-red-600 mt-2"></p>
+        </section>
+
+        <section id="taxonomyWrap" class="card p-6">
+          <div class="section-title mb-5">Taxonomy</div>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div><label class="label required">Topic</label><select id="topic" class="input" required><option value="">Select topic</option></select></div>
+            <div><label class="label required">Sub-topic</label><select id="subtopic" class="input" required disabled><option value="">Select sub-topic</option></select></div>
+            <div><label class="label required">Concept</label><select id="concept" class="input" required disabled><option value="">Select concept</option></select></div>
+          </div>
+          <div class="mt-5 p-4 rounded-xl" style="background:var(--orange-tint);border:1px solid #f7dcc2">
+            <div class="text-sm font-bold" style="color:var(--orange-tint-text)">Tags</div>
+            <div id="derivedTags" class="text-sm mt-1" style="color:#c05f16">Tags will be derived from the selected taxonomy when the tag list is populated.</div>
+          </div>
+        </section>
+
+        <section class="card p-6">
+          <div class="section-title mb-5">Diagnostics</div>
+          <div class="grid md:grid-cols-4 gap-4">
+            <div><label class="label required">Difficulty</label><select id="difficulty" class="input" required><option value="">Select</option><option>Easy</option><option>Moderate</option><option>Difficult</option></select></div>
+            <div><label class="label required">Attempt worthiness</label><select id="attemptWorthiness" class="input" required><option value="">Select</option><option>Must Attempt</option><option>Should Attempt</option><option>Conditional</option><option>Skip</option></select></div>
+            <div><label class="label required">Minimum time (sec)</label><input id="minTime" type="number" min="1" class="input" required></div>
+            <div><label class="label required">Target time (sec)</label><input id="targetTime" type="number" min="1" class="input" required></div>
+          </div>
+          <div class="grid md:grid-cols-3 gap-4 mt-4">
+            <div><label class="label required">Maximum time (sec)</label><input id="maxTime" type="number" min="1" class="input" required></div>
+            <div><label class="label">Skills <span class="text-slate-400">(max 3)</span></label><select id="skills" class="input" multiple size="4"></select></div>
+            <div><label class="label">Trap type</label><select id="trapType" class="input"><option value="">Select</option></select></div>
+          </div>
+          <p id="diagError" class="text-sm text-red-600 mt-3"></p>
+        </section>
+
+        <section id="solutionWrap" class="card p-6">
+          <div class="section-title mb-5">Solution</div>
+          <div><label class="label required">Primary solution</label><div id="primarySolution" class="editor" contenteditable="true"></div></div>
+          <div class="mt-4"><label class="label">Alternate solution</label><div id="alternateSolution" class="editor" contenteditable="true"></div></div>
+          <div class="grid md:grid-cols-2 gap-4 mt-4">
+            <div><label class="label">Key insight</label><textarea id="keyInsight" class="input min-h-24"></textarea></div>
+            <div><label class="label">Shortcut</label><textarea id="shortcut" class="input min-h-24"></textarea></div>
+            <div><label class="label">Common mistake</label><textarea id="commonMistake" class="input min-h-24"></textarea></div>
+            <div><label class="label required">Solution approach</label><textarea id="solutionApproach" class="input min-h-24"></textarea></div>
+          </div>
+        </section>
+
+        <section class="card p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div id="saveMessage" class="text-sm text-slate-500"></div>
+          <button class="btn primary px-7" type="submit">Save Question</button>
+        </section>
+      </form>
+    </div>
+  </main>
+
+  <footer style="background:var(--navy-950)" class="mt-10">
+    <div class="max-w-7xl mx-auto px-5 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs" style="color:#8994b3">
+      <span>ChaloPrep · Internal content tooling</span>
+      <span>Built for <strong style="color:#c3cbe0">CAT</strong> &nbsp;·&nbsp; <strong style="color:#c3cbe0">AI-personalised</strong> question data</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://yhufgyeeqjdnmilnihbt.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodWZneWVlcWpkbm1pbG5paGJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0Njk3ODcsImV4cCI6MjA5NDA0NTc4N30.eSigz2_Ll3EGpw-MLsn2toAa4-2xrPwdmgE3Xc3roHY';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const state = { section:null, structure:null, topics:[], subtopics:[], concepts:[] };
+
+const $ = id => document.getElementById(id);
+const structures = {
+  QA: [
+    ['standalone','Standalone'],
+    ['standalone_visual','Standalone + Visual']
+  ],
+  DILR: [
+    ['standalone','Standalone'],
+    ['standalone_visual','Standalone + Visual'],
+    ['set_question','Set']
+  ],
+  VARC: [
+    ['va_standalone','VA Standalone'],
+    ['rc_question','RC Passage']
+  ]
+};
+
+function setYears(){ for(let y=2025;y>=2020;y--){ $('year').insertAdjacentHTML('beforeend', `<option value="${y}">${y}</option>`); } }
+
+async function init(){
+  setYears();
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session){ $('authState').textContent='No active session. Please log in through the ChaloPrep login page.'; return; }
+  $('authState').classList.add('hidden'); $('dashboard').classList.remove('hidden');
+  $('userEmail').textContent = session.user.email || '';
+  await loadAuxiliary();
+}
+async function loadAuxiliary(){
+  const [skills, traps] = await Promise.all([
+    sb.from('skills').select('id,name').order('name'),
+    sb.from('trap_types').select('id,name').order('name')
+  ]);
+  if(!skills.error) $('skills').innerHTML = skills.data.map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
+  if(!traps.error) $('trapType').innerHTML = '<option value="">Select</option>' + traps.data.map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
+}
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+document.querySelectorAll('[data-section]').forEach(btn=>btn.addEventListener('click',()=>{
+  state.section=btn.dataset.section;
+  document.querySelectorAll('[data-section]').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  $('section').value=state.section;
+  $('structureChoices').innerHTML=structures[state.section].map(([v,l])=>`<button type="button" class="choice" data-structure="${v}"><div class="font-extrabold">${l}</div><div class="text-sm text-slate-500 mt-1">${structureHint(v)}</div></button>`).join('');
+  $('structureWrap').classList.remove('hidden');
+  document.querySelectorAll('[data-structure]').forEach(b=>b.addEventListener('click',()=>chooseStructure(b.dataset.structure)));
+}));
+function structureHint(v){
+  return ({standalone:'One independent question',standalone_visual:'One question with one visual',set_question:'Multiple linked questions in one DILR set',va_standalone:'Independent verbal ability question',rc_question:'One passage with linked RC questions'})[v];
+}
+function chooseStructure(v){
+  state.structure=v; $('contentStructure').value=v;
+  document.querySelectorAll('[data-structure]').forEach(x=>x.classList.toggle('active',x.dataset.structure===v));
+  $('questionForm').classList.remove('hidden');
+  $('setMeta').classList.toggle('hidden',v!=='set_question');
+  $('rcMeta').classList.toggle('hidden',v!=='rc_question');
+  $('visualWrap').classList.toggle('hidden',v!=='standalone_visual');
+  if(v==='set_question') buildSetQuestions(); else removeSetQuestions();
+  if(v==='rc_question') buildRcQuestions(); else removeRcQuestions();
+  loadTopics();
+}
+async function loadTopics(){
+  const {data,error}=await sb.from('topics').select('id,name').eq('section',state.section).order('name');
+  state.topics=data||[]; $('topic').innerHTML='<option value="">Select topic</option>'+state.topics.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+  $('subtopic').innerHTML='<option value="">Select sub-topic</option>'; $('concept').innerHTML='<option value="">Select concept</option>';
+  $('subtopic').disabled=true; $('concept').disabled=true;
+}
+$('topic').addEventListener('change',async e=>{
+  $('concept').innerHTML='<option value="">Select concept</option>'; $('concept').disabled=true;
+  const {data}=await sb.from('subtopics').select('id,name').eq('topic_id',e.target.value).order('name');
+  $('subtopic').innerHTML='<option value="">Select sub-topic</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
+  $('subtopic').disabled=false;
+});
+$('subtopic').addEventListener('change',async e=>{
+  const {data}=await sb.from('concepts').select('id,name').eq('subtopic_id',e.target.value).order('name');
+  $('concept').innerHTML='<option value="">Select concept</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
+  $('concept').disabled=false;
+});
+document.querySelectorAll('input[name="answerType"]').forEach(r=>r.addEventListener('change',()=>updateAnswerType()));
+function updateAnswerType(){
+  const t=document.querySelector('input[name="answerType"]:checked').value;
+  $('optionsWrap').classList.toggle('hidden',t!=='MCQ');
+  $('correctAnswer').placeholder=t==='MCQ'?'A / B / C / D':'Enter answer';
+}
+$('skills').addEventListener('change',()=>{
+  const selected=[...$('skills').selectedOptions];
+  if(selected.length>3){ selected[selected.length-1].selected=false; $('diagError').textContent='Maximum 3 skills can be selected.'; }
+  else $('diagError').textContent='';
+});
+$('visualFile').addEventListener('change',()=>{
+  const f=$('visualFile').files[0]; $('visualError').textContent='';
+  if(!f)return;
+  if(f.size>5*1024*1024){ $('visualError').textContent='Image exceeds the 5 MB limit.'; $('visualFile').value=''; return; }
+  if(!['image/png','image/jpeg','image/webp'].includes(f.type)){ $('visualError').textContent='Only PNG, JPG/JPEG, and WEBP images are allowed.'; $('visualFile').value=''; }
+});
+$('passageEditor').addEventListener('input',()=>{$('wordCount').textContent=($('passageEditor').innerText.trim().match(/\S+/g)||[]).length;});
+function buildSetQuestions(){
+  let old=document.getElementById('setQuestions'); if(old)old.remove();
+  const sec=document.createElement('section'); sec.id='setQuestions'; sec.className='card p-6';
+  sec.innerHTML='<div class="section-title mb-4">Set questions</div><div id="setQuestionList" class="space-y-5"></div>';
+  $('questionCore').after(sec);
+  $('setQuestionCount').addEventListener('input',renderSetQuestions,{once:false}); renderSetQuestions();
+}
+function renderSetQuestions(){
+  const n=Math.min(20,Math.max(0,Number($('setQuestionCount').value)||0)); const list=$('setQuestionList'); if(!list)return;
+  list.innerHTML=Array.from({length:n},(_,i)=>`<div class="border border-slate-200 rounded-xl p-4"><div class="font-bold mb-3">Set Question ${i+1}</div><textarea class="input set-q-text min-h-24" data-index="${i}" placeholder="Question text"></textarea><div class="grid md:grid-cols-2 gap-3 mt-3"><select class="input set-answer-type" data-index="${i}"><option>MCQ</option><option>TITA</option></select><input class="input set-answer" data-index="${i}" placeholder="Correct answer"></div><div class="grid md:grid-cols-3 gap-3 mt-3"><input class="input set-opt" data-index="${i}" data-opt="A" placeholder="Option A"><input class="input set-opt" data-index="${i}" data-opt="B" placeholder="Option B"><input class="input set-opt" data-index="${i}" data-opt="C" placeholder="Option C"></div><input class="input set-opt mt-3" data-index="${i}" data-opt="D" placeholder="Option D"></div>`).join('');
+}
+function removeSetQuestions(){const x=$('setQuestions');if(x)x.remove();}
+function buildRcQuestions(){
+  let old=$('rcQuestions'); if(old)old.remove();
+  const sec=document.createElement('section');sec.id='rcQuestions';sec.className='card p-6';
+  sec.innerHTML='<div class="section-title mb-4">RC questions</div><div><label class="label required">Number of questions</label><input id="rcQuestionCount" type="number" min="1" max="20" class="input md:w-64"></div><div id="rcQuestionList" class="space-y-5 mt-5"></div>';
+  $('rcMeta').after(sec); $('rcQuestionCount').addEventListener('input',renderRcQuestions);
+}
+function renderRcQuestions(){
+  const n=Math.min(20,Math.max(0,Number($('rcQuestionCount').value)||0));const list=$('rcQuestionList');if(!list)return;
+  list.innerHTML=Array.from({length:n},(_,i)=>`<div class="border border-slate-200 rounded-xl p-4"><div class="font-bold mb-3">RC Question ${i+1}</div><textarea class="input rc-q-text min-h-24" data-index="${i}" placeholder="Question text"></textarea><select class="input rc-answer-type mt-3" data-index="${i}"><option>MCQ</option><option>TITA</option></select><input class="input rc-answer mt-3" data-index="${i}" placeholder="Correct answer"></div>`).join('');
+}
+function removeRcQuestions(){const x=$('rcQuestions');if(x)x.remove();}
+function getEditor(id){return $(id).innerHTML.trim();}
+async function getNextId(section,year,slot){
+  const {data,error}=await sb.rpc('next_question_number',{p_exam:'CAT',p_year:Number(year),p_slot:Number(slot),p_section:section});
+  if(error) throw error;
+  return `CAT${year}_S${slot}_${section}_${String(data).padStart(3,'0')}`;
+}
+async function uploadVisual(questionId){
+  const f=$('visualFile').files[0]; if(!f)return null;
+  const ext=f.name.split('.').pop().toLowerCase(); const path=`${state.section}/${questionId}/visual.${ext}`;
+  const {error}=await sb.storage.from('QUESTIONS-VISUALS').upload(path,f,{upsert:true,contentType:f.type});
+  if(error)throw error;
+  return {visual_type:$('visualType').value,storage_path:path,caption:$('visualCaption').value||null,file_size_bytes:f.size,mime_type:f.type};
+}
+$('questionForm').addEventListener('submit',async e=>{
+  e.preventDefault(); $('saveMessage').textContent='Saving…';
+  try{
+    const year=$('year').value,slot=$('slot').value;
+    if(!year||!slot)throw new Error('Select year and slot.');
+    const min=Number($('minTime').value),target=Number($('targetTime').value),max=Number($('maxTime').value);
+    if(!(min<=target&&target<=max))throw new Error('Time must satisfy Minimum ≤ Target ≤ Maximum.');
+    const skills=[...$('skills').selectedOptions].map(o=>Number(o.value)); if(skills.length>3)throw new Error('Maximum 3 skills.');
+    const answerType=document.querySelector('input[name="answerType"]:checked').value;
+    if(answerType==='MCQ' && !['A','B','C','D'].includes($('correctAnswer').value.trim().toUpperCase()))throw new Error('Correct answer must be A, B, C or D for MCQ.');
+    const qid=await getNextId(state.section,year,slot);
+    $('questionIdPreview').value=qid;
+    const {data:userData}=await sb.auth.getUser();
+    let row={question_id:qid,exam:'CAT',exam_year:Number(year),slot:Number(slot),section:state.section,content_structure:state.structure,question_type:state.section==='QA'?'Quantitative Aptitude':state.section==='DILR'?'Logical Reasoning':state.structure==='rc_question'?'Reading Comprehension':'Verbal Ability',answer_type:answerType,question_text:getEditor('questionEditor'),source:'PYQ',topic_id:Number($('topic').value)||null,subtopic_id:Number($('subtopic').value)||null,concept_id:Number($('concept').value)||null,difficulty:$('difficulty').value,min_expected_time:min,target_time:target,max_expected_time:max,attempt_worthiness:$('attemptWorthiness').value,trap_type_id:Number($('trapType').value)||null,solution_approach:$('solutionApproach').value||null,correct_answer:$('correctAnswer').value.trim(),created_by:userData.user?.id||null};
+    const {data:q,error}=await sb.from('questions').insert(row).select('id').single(); if(error)throw error;
+    const questionPk=q.id;
+    if(answerType==='MCQ'){
+      const opts=['A','B','C','D'].map((k,i)=>({question_id:questionPk,option_key:k,option_text:$(`opt${k}`).value.trim(),display_order:i+1}));
+      const {error:oe}=await sb.from('question_options').insert(opts);if(oe)throw oe;
+    }
+    if(skills.length){const {error:se}=await sb.from('question_skills').insert(skills.map(skill_id=>({question_id:questionPk,skill_id})));if(se)throw se;}
+    const {error:so}=await sb.from('question_solutions').insert({question_id:questionPk,primary_solution:getEditor('primarySolution'),alternate_solution:getEditor('alternateSolution')||null,key_insight:$('keyInsight').value||null,shortcut:$('shortcut').value||null,common_mistake:$('commonMistake').value||null});if(so)throw so;
+    if(state.structure==='standalone_visual'){
+      const visual=await uploadVisual(qid);if(!visual)throw new Error('Visual is required for Standalone + Visual.');
+      visual.question_id=questionPk; const {error:ve}=await sb.from('question_visuals').insert(visual);if(ve)throw ve;
+    }
+    $('saveMessage').textContent=`Saved ${qid} successfully.`;
+  }catch(err){console.error(err);$('saveMessage').textContent=err.message||'Could not save question.';}
+});
+$('resetAll').addEventListener('click',()=>location.reload());
+$('logout').addEventListener('click',async()=>{await sb.auth.signOut();location.href='index.html';});
+init();
+</script>
+</body>
+</html>
