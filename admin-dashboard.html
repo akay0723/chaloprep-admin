@@ -125,6 +125,49 @@
     background:#0B2A5B;
     border-radius:999px;
   }
+
+  .multi-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .35rem .6rem;
+  border-radius: 999px;
+  background: #E3EAF5;
+  color: #0B2A5B;
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.multi-chip button {
+  border: none;
+  background: transparent;
+  color: #0B2A5B;
+  cursor: pointer;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.multi-option {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .65rem .75rem;
+  cursor: pointer;
+}
+
+.multi-option:hover {
+  background: #F1F5F9;
+}
+
+.multi-option input {
+  accent-color: #0B2A5B;
+}
+
+.multi-empty {
+  padding: .75rem;
+  color: #64748B;
+  font-size: .85rem;
+}
 </style>
 </head>
 <body>
@@ -279,8 +322,64 @@
           </div>
           <div class="grid md:grid-cols-3 gap-4 mt-4">
             <div><label class="label required">Maximum time (sec)</label><input id="maxTime" type="number" min="1" class="input" required></div>
-            <div><label class="label">Skills <span class="text-slate-400">(max 3)</span></label><select id="skills" class="input" multiple size="4"></select></div>
-            <div><label class="label">Trap type</label><select id="trapType" class="input"><option value="">Select</option></select></div>
+            <div>
+  <label class="label">
+    Skills <span class="text-slate-400">(max 3)</span>
+  </label>
+
+  <div id="skillsMultiSelect" class="relative">
+    <button
+      type="button"
+      id="skillsMultiButton"
+      class="input text-left flex items-center justify-between"
+    >
+      <span id="skillsSelectedText">Select skills</span>
+      <span>▼</span>
+    </button>
+
+    <div
+      id="skillsDropdown"
+      class="hidden absolute z-50 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-y-auto"
+    >
+    </div>
+  </div>
+
+  <div
+    id="selectedSkills"
+    class="flex flex-wrap gap-2 mt-2"
+  ></div>
+</div>
+
+
+<div>
+  <label class="label">
+    Trap type
+  </label>
+
+  <div id="trapsMultiSelect" class="relative">
+
+    <button
+      type="button"
+      id="trapsMultiButton"
+      class="input text-left flex items-center justify-between"
+    >
+      <span id="trapsSelectedText">Select trap types</span>
+      <span>▼</span>
+    </button>
+
+    <div
+      id="trapsDropdown"
+      class="hidden absolute z-50 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-y-auto"
+    >
+    </div>
+
+  </div>
+
+  <div
+    id="selectedTraps"
+    class="flex flex-wrap gap-2 mt-2"
+  ></div>
+</div>
           </div>
           <p id="diagError" class="text-sm text-red-600 mt-3"></p>
         </section>
@@ -526,8 +625,12 @@ const state = {
   topics: [],
   subtopics: [],
   concepts: [],
+
   allSkills: [],
-  allTraps: []
+  allTraps: [],
+
+  selectedSkills: [],
+  selectedTraps: []
 };
 
 const $ = id => document.getElementById(id);
@@ -604,91 +707,298 @@ async function loadAuxiliary(){
   state.allTraps =
     trapsResult.data || [];
 
-
-  /* Nothing selected initially */
-
-  $('skills').innerHTML = '';
-
-  $('trapType').innerHTML =
-    '<option value="">Select</option>';
-
 }
 
-function loadSectionSkillsAndTraps(){
+function loadSectionSkillsAndTraps() {
 
   const section = state.section;
 
-  if(!section){
+  state.selectedSkills = [];
+  state.selectedTraps = [];
 
-    $('skills').innerHTML = '';
+  if (!section) {
+    renderSkillsDropdown();
+    renderTrapsDropdown();
+    return;
+  }
 
-    $('trapType').innerHTML =
-      '<option value="">Select</option>';
+  renderSkillsDropdown();
+  renderTrapsDropdown();
+}
+
+function getSectionSkills() {
+
+  return (state.allSkills || [])
+    .filter(skill => skill.section === state.section)
+    .sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+}
+
+
+function getSectionTraps() {
+
+  return (state.allTraps || [])
+    .filter(trap => trap.section === state.section)
+    .sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+}
+
+function renderSkillsDropdown() {
+
+  const dropdown = $('skillsDropdown');
+
+  if (!dropdown) return;
+
+  const skills = getSectionSkills();
+
+  if (!skills.length) {
+
+    dropdown.innerHTML =
+      '<div class="multi-empty">No skills available for this section.</div>';
+
+    $('skillsSelectedText').textContent =
+      'No skills available';
 
     return;
   }
 
+  dropdown.innerHTML = skills.map(skill => {
 
-  /* -----------------------------
-     SECTION-SPECIFIC SKILLS
-     ----------------------------- */
+    const checked =
+      state.selectedSkills.includes(Number(skill.id));
 
-  const sectionSkills =
-    (state.allSkills || [])
-      .filter(skill =>
-        skill.section === section
-      )
-      .sort((a,b) =>
-        a.name.localeCompare(b.name)
-      );
+    return `
+      <label class="multi-option">
 
+        <input
+          type="checkbox"
+          value="${skill.id}"
+          ${checked ? 'checked' : ''}
+          onchange="toggleSkill(${skill.id})"
+        >
 
-  $('skills').innerHTML =
-    sectionSkills.map(skill => `
-      <option value="${skill.id}">
-        ${escapeHtml(skill.name)}
-      </option>
-    `).join('');
+        <span>
+          ${escapeHtml(skill.name)}
+        </span>
 
+      </label>
+    `;
 
-  /* -----------------------------
-     SECTION-SPECIFIC TRAPS
-     ----------------------------- */
+  }).join('');
 
-  const sectionTraps =
-    (state.allTraps || [])
-      .filter(trap =>
-        trap.section === section
-      )
-      .sort((a,b) =>
-        a.name.localeCompare(b.name)
-      );
+  updateSelectedSkillsUI();
+}
 
+function renderTrapsDropdown() {
 
-  $('trapType').innerHTML =
-    '<option value="">Select</option>' +
+  const dropdown = $('trapsDropdown');
 
-    sectionTraps.map(trap => `
-      <option value="${trap.id}">
-        ${escapeHtml(trap.name)}
-      </option>
-    `).join('');
+  if (!dropdown) return;
 
+  const traps = getSectionTraps();
 
-  /* Clear old selections */
+  if (!traps.length) {
 
-  [...$('skills').options].forEach(option => {
-    option.selected = false;
-  });
+    dropdown.innerHTML =
+      '<div class="multi-empty">No trap types available for this section.</div>';
 
-  $('trapType').value = '';
+    $('trapsSelectedText').textContent =
+      'No trap types available';
 
+    return;
+  }
 
-  /* Clear diagnostic message */
+  dropdown.innerHTML = traps.map(trap => {
+
+    const checked =
+      state.selectedTraps.includes(Number(trap.id));
+
+    return `
+      <label class="multi-option">
+
+        <input
+          type="checkbox"
+          value="${trap.id}"
+          ${checked ? 'checked' : ''}
+          onchange="toggleTrap(${trap.id})"
+        >
+
+        <span>
+          ${escapeHtml(trap.name)}
+        </span>
+
+      </label>
+    `;
+
+  }).join('');
+
+  updateSelectedTrapsUI();
+}
+
+function toggleSkill(skillId) {
+
+  skillId = Number(skillId);
+
+  const index =
+    state.selectedSkills.indexOf(skillId);
+
+  if (index !== -1) {
+
+    state.selectedSkills.splice(index, 1);
+
+  } else {
+
+    if (state.selectedSkills.length >= 3) {
+
+      $('diagError').textContent =
+        'Maximum 3 skills can be selected for a question.';
+
+      renderSkillsDropdown();
+
+      return;
+    }
+
+    state.selectedSkills.push(skillId);
+
+  }
 
   $('diagError').textContent = '';
 
+  renderSkillsDropdown();
 }
+
+function toggleTrap(trapId) {
+
+  trapId = Number(trapId);
+
+  const index =
+    state.selectedTraps.indexOf(trapId);
+
+  if (index !== -1) {
+
+    state.selectedTraps.splice(index, 1);
+
+  } else {
+
+    state.selectedTraps.push(trapId);
+
+  }
+
+  renderTrapsDropdown();
+}
+
+function updateSelectedSkillsUI() {
+
+  const container =
+    $('selectedSkills');
+
+  const selected =
+    (state.allSkills || [])
+      .filter(skill =>
+        state.selectedSkills.includes(Number(skill.id))
+      );
+
+  $('skillsSelectedText').textContent =
+    selected.length
+      ? `${selected.length} skill${selected.length > 1 ? 's' : ''} selected`
+      : 'Select skills';
+
+  container.innerHTML =
+    selected.map(skill => `
+      <span class="multi-chip">
+
+        ${escapeHtml(skill.name)}
+
+        <button
+          type="button"
+          onclick="toggleSkill(${skill.id})"
+        >
+          ×
+        </button>
+
+      </span>
+    `).join('');
+}
+
+function updateSelectedTrapsUI() {
+
+  const container =
+    $('selectedTraps');
+
+  const selected =
+    (state.allTraps || [])
+      .filter(trap =>
+        state.selectedTraps.includes(Number(trap.id))
+      );
+
+  $('trapsSelectedText').textContent =
+    selected.length
+      ? `${selected.length} trap${selected.length > 1 ? 's' : ''} selected`
+      : 'Select trap types';
+
+  container.innerHTML =
+    selected.map(trap => `
+      <span class="multi-chip">
+
+        ${escapeHtml(trap.name)}
+
+        <button
+          type="button"
+          onclick="toggleTrap(${trap.id})"
+        >
+          ×
+        </button>
+
+      </span>
+    `).join('');
+}
+
+$('skillsMultiButton').addEventListener('click', () => {
+
+  $('skillsDropdown')
+    .classList.toggle('hidden');
+
+  $('trapsDropdown')
+    .classList.add('hidden');
+
+});
+
+
+$('trapsMultiButton').addEventListener('click', () => {
+
+  $('trapsDropdown')
+    .classList.toggle('hidden');
+
+  $('skillsDropdown')
+    .classList.add('hidden');
+
+});
+
+document.addEventListener('click', e => {
+
+  if (!$('skillsMultiSelect').contains(e.target)) {
+
+    $('skillsDropdown')
+      .classList.add('hidden');
+
+  }
+
+  if (!$('trapsMultiSelect').contains(e.target)) {
+
+    $('trapsDropdown')
+      .classList.add('hidden');
+
+  }
+
+});
+
+
+
+
+
+
 
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 
@@ -794,23 +1104,7 @@ function updateAnswerType(){
   $('optionsWrap').classList.toggle('hidden',t!=='MCQ');
   $('correctAnswer').placeholder=t==='MCQ'?'A / B / C / D':'Enter answer';
 }
-$('skills').addEventListener('change', () => {
 
-  const selected = [...$('skills').selectedOptions];
-
-  if (selected.length > 3) {
-
-    selected[selected.length - 1].selected = false;
-
-    $('diagError').textContent =
-      'Maximum 3 skills can be selected.';
-
-    return;
-  }
-
-  $('diagError').textContent = '';
-
-});
 $('visualFile').addEventListener('change',()=>{
   const f=$('visualFile').files[0]; $('visualError').textContent='';
   if(!f)return;
@@ -861,37 +1155,75 @@ $('questionForm').addEventListener('submit',async e=>{
     if(!year||!slot)throw new Error('Select year and slot.');
     const min=Number($('minTime').value),target=Number($('targetTime').value),max=Number($('maxTime').value);
     if(!(min<=target&&target<=max))throw new Error('Time must satisfy Minimum ≤ Target ≤ Maximum.');
-    const skills =
-  [...$('skills').selectedOptions]
-    .map(o => Number(o.value))
-    .filter(Boolean);
+const skills = [...state.selectedSkills];
+const traps = [...state.selectedTraps];
 
-if(skills.length > 3){
-
+if (skills.length > 3) {
   throw new Error(
     'A question can have a maximum of 3 skills.'
   );
-
 }
     const answerType=document.querySelector('input[name="answerType"]:checked').value;
     if(answerType==='MCQ' && !['A','B','C','D'].includes($('correctAnswer').value.trim().toUpperCase()))throw new Error('Correct answer must be A, B, C or D for MCQ.');
     const qid=await getNextId(state.section,year,slot);
     $('questionIdPreview').value=qid;
     const {data:userData}=await sb.auth.getUser();
-    let row={question_id:qid,exam:'CAT',exam_year:Number(year),slot:Number(slot),section:state.section,content_structure:state.structure,question_type:state.section==='QA'?'Quantitative Aptitude':state.section==='DILR'?'Logical Reasoning':state.structure==='rc_question'?'Reading Comprehension':'Verbal Ability',answer_type:answerType,question_text:getEditor('questionEditor'),source:'PYQ',topic_id:Number($('topic').value)||null,subtopic_id:Number($('subtopic').value)||null,concept_id:Number($('concept').value)||null,difficulty:$('difficulty').value,min_expected_time:min,target_time:target,max_expected_time:max,attempt_worthiness:$('attemptWorthiness').value,trap_type_id:Number($('trapType').value)||null,solution_approach:$('solutionApproach').value||null,correct_answer:$('correctAnswer').value.trim(),created_by:userData.user?.id||null};
+    let row={question_id:qid,exam:'CAT',exam_year:Number(year),slot:Number(slot),section:state.section,content_structure:state.structure,question_type:state.section==='QA'?'Quantitative Aptitude':state.section==='DILR'?'Logical Reasoning':state.structure==='rc_question'?'Reading Comprehension':'Verbal Ability',answer_type:answerType,question_text:getEditor('questionEditor'),source:'PYQ',topic_id:Number($('topic').value)||null,subtopic_id:Number($('subtopic').value)||null,concept_id:Number($('concept').value)||null,difficulty:$('difficulty').value,min_expected_time:min,target_time:target,max_expected_time:max,attempt_worthiness:$('attemptWorthiness').value,solution_approach:$('solutionApproach').value||null,correct_answer:$('correctAnswer').value.trim(),created_by:userData.user?.id||null};
     const {data:q,error}=await sb.from('questions').insert(row).select('id').single(); if(error)throw error;
     const questionPk=q.id;
     if(answerType==='MCQ'){
       const opts=['A','B','C','D'].map((k,i)=>({question_id:questionPk,option_key:k,option_text:$(`opt${k}`).value.trim(),display_order:i+1}));
       const {error:oe}=await sb.from('question_options').insert(opts);if(oe)throw oe;
     }
-    if(skills.length){const {error:se}=await sb.from('question_skills').insert(skills.map(skill_id=>({question_id:questionPk,skill_id})));if(se)throw se;}
-    const {error:so}=await sb.from('question_solutions').insert({question_id:questionPk,primary_solution:getEditor('primarySolution'),alternate_solution:getEditor('alternateSolution')||null,key_insight:$('keyInsight').value||null,shortcut:$('shortcut').value||null,common_mistake:$('commonMistake').value||null});if(so)throw so;
+    if(skills.length){
+  const {error:se}=await sb
+    .from('question_skills')
+    .insert(
+      skills.map(skill_id=>({
+        question_id:questionPk,
+        skill_id
+      }))
+    );
+
+  if(se)throw se;
+}
+
+if(traps.length){
+  const {error:te}=await sb
+    .from('question_traps')
+    .insert(
+      traps.map(trap_type_id=>({
+        question_id:questionPk,
+        trap_type_id
+      }))
+    );
+
+  if(te)throw te;
+}
+
+const {error:so}=await sb
+  .from('question_solutions')
+  .insert({
+    question_id:questionPk,
+    primary_solution:getEditor('primarySolution'),
+    alternate_solution:getEditor('alternateSolution')||null,
+    key_insight:$('keyInsight').value||null,
+    shortcut:$('shortcut').value||null,
+    common_mistake:$('commonMistake').value||null
+  });
+
+if(so)throw so;
     if(state.structure==='standalone_visual'){
       const visual=await uploadVisual(qid);if(!visual)throw new Error('Visual is required for Standalone + Visual.');
       visual.question_id=questionPk; const {error:ve}=await sb.from('question_visuals').insert(visual);if(ve)throw ve;
     }
-    $('saveMessage').textContent=`Saved ${qid} successfully.`;
+$('saveMessage').textContent=`Saved ${qid} successfully.`;
+
+state.selectedSkills = [];
+state.selectedTraps = [];
+
+renderSkillsDropdown();
+renderTrapsDropdown();
   }catch(err){console.error(err);$('saveMessage').textContent=err.message||'Could not save question.';}
 });
 $('resetAll').addEventListener('click',()=>location.reload());
