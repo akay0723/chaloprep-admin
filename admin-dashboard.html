@@ -549,14 +549,139 @@ async function init(){
   $('userEmail').textContent = session.user.email || '';
   await loadAuxiliary();
 }
+/* =========================================================
+   SKILLS + TRAP TYPES
+   ========================================================= */
+
 async function loadAuxiliary(){
-  const [skills, traps] = await Promise.all([
-    sb.from('skills').select('id,name').order('name'),
-    sb.from('trap_types').select('id,name').order('name')
+
+  const [skillsResult, trapsResult] = await Promise.all([
+
+    sb
+      .from('skills')
+      .select('id,name,section')
+      .order('name'),
+
+    sb
+      .from('trap_types')
+      .select('id,name,section')
+      .order('name')
+
   ]);
-  if(!skills.error) $('skills').innerHTML = skills.data.map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
-  if(!traps.error) $('trapType').innerHTML = '<option value="">Select</option>' + traps.data.map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
+
+
+  if(skillsResult.error){
+
+    console.error(
+      'Skills loading error:',
+      skillsResult.error
+    );
+
+  }
+
+
+  if(trapsResult.error){
+
+    console.error(
+      'Trap types loading error:',
+      trapsResult.error
+    );
+
+  }
+
+
+  state.allSkills =
+    skillsResult.data || [];
+
+  state.allTraps =
+    trapsResult.data || [];
+
+
+  /* Nothing selected initially */
+
+  $('skills').innerHTML = '';
+
+  $('trapType').innerHTML =
+    '<option value="">Select</option>';
+
 }
+
+function loadSectionSkillsAndTraps(){
+
+  const section = state.section;
+
+  if(!section){
+
+    $('skills').innerHTML = '';
+
+    $('trapType').innerHTML =
+      '<option value="">Select</option>';
+
+    return;
+  }
+
+
+  /* -----------------------------
+     SECTION-SPECIFIC SKILLS
+     ----------------------------- */
+
+  const sectionSkills =
+    (state.allSkills || [])
+      .filter(skill =>
+        skill.section === section
+      )
+      .sort((a,b) =>
+        a.name.localeCompare(b.name)
+      );
+
+
+  $('skills').innerHTML =
+    sectionSkills.map(skill => `
+      <option value="${skill.id}">
+        ${escapeHtml(skill.name)}
+      </option>
+    `).join('');
+
+
+  /* -----------------------------
+     SECTION-SPECIFIC TRAPS
+     ----------------------------- */
+
+  const sectionTraps =
+    (state.allTraps || [])
+      .filter(trap =>
+        trap.section === section
+      )
+      .sort((a,b) =>
+        a.name.localeCompare(b.name)
+      );
+
+
+  $('trapType').innerHTML =
+    '<option value="">Select</option>' +
+
+    sectionTraps.map(trap => `
+      <option value="${trap.id}">
+        ${escapeHtml(trap.name)}
+      </option>
+    `).join('');
+
+
+  /* Clear old selections */
+
+  [...$('skills').options].forEach(option => {
+    option.selected = false;
+  });
+
+  $('trapType').value = '';
+
+
+  /* Clear diagnostic message */
+
+  $('diagError').textContent = '';
+
+}
+
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 
 document.querySelectorAll('[data-section]').forEach(btn => {
@@ -567,6 +692,8 @@ document.querySelectorAll('[data-section]').forEach(btn => {
     // Update selected section
     state.section = newSection;
     $('section').value = newSection;
+
+    loadSectionSkillsAndTraps();
 
     // Highlight selected section
     document.querySelectorAll('[data-section]')
@@ -659,10 +786,22 @@ function updateAnswerType(){
   $('optionsWrap').classList.toggle('hidden',t!=='MCQ');
   $('correctAnswer').placeholder=t==='MCQ'?'A / B / C / D':'Enter answer';
 }
-$('skills').addEventListener('change',()=>{
-  const selected=[...$('skills').selectedOptions];
-  if(selected.length>3){ selected[selected.length-1].selected=false; $('diagError').textContent='Maximum 3 skills can be selected.'; }
-  else $('diagError').textContent='';
+$('skills').addEventListener('change', () => {
+
+  const selected = [...$('skills').selectedOptions];
+
+  if (selected.length > 3) {
+
+    selected[selected.length - 1].selected = false;
+
+    $('diagError').textContent =
+      'Maximum 3 skills can be selected.';
+
+    return;
+  }
+
+  $('diagError').textContent = '';
+
 });
 $('visualFile').addEventListener('change',()=>{
   const f=$('visualFile').files[0]; $('visualError').textContent='';
@@ -714,7 +853,18 @@ $('questionForm').addEventListener('submit',async e=>{
     if(!year||!slot)throw new Error('Select year and slot.');
     const min=Number($('minTime').value),target=Number($('targetTime').value),max=Number($('maxTime').value);
     if(!(min<=target&&target<=max))throw new Error('Time must satisfy Minimum ≤ Target ≤ Maximum.');
-    const skills=[...$('skills').selectedOptions].map(o=>Number(o.value)); if(skills.length>3)throw new Error('Maximum 3 skills.');
+    const skills =
+  [...$('skills').selectedOptions]
+    .map(o => Number(o.value))
+    .filter(Boolean);
+
+if(skills.length > 3){
+
+  throw new Error(
+    'A question can have a maximum of 3 skills.'
+  );
+
+}
     const answerType=document.querySelector('input[name="answerType"]:checked').value;
     if(answerType==='MCQ' && !['A','B','C','D'].includes($('correctAnswer').value.trim().toUpperCase()))throw new Error('Correct answer must be A, B, C or D for MCQ.');
     const qid=await getNextId(state.section,year,slot);
