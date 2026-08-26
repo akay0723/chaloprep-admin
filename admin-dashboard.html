@@ -1148,6 +1148,41 @@ async function uploadVisual(questionId){
   if(error)throw error;
   return {visual_type:$('visualType').value,storage_path:path,caption:$('visualCaption').value||null,file_size_bytes:f.size,mime_type:f.type};
 }
+
+async function checkDuplicateQuestion(questionText) {
+
+  const normalizedText = normalizeQuestionText(questionText);
+
+  if (!normalizedText) {
+    return false;
+  }
+
+  const { data, error } = await sb
+    .from('questions')
+    .select('id, question_id, question_text')
+    .eq('section', state.section)
+    .eq('content_structure', state.structure);
+
+  if (error) {
+    console.error('Duplicate check error:', error);
+    throw error;
+  }
+
+  return (data || []).find(row =>
+    normalizeQuestionText(row.question_text) === normalizedText
+  ) || null;
+}
+
+
+function normalizeQuestionText(text) {
+
+  return String(text || '')
+    .replace(/<[^>]*>/g, ' ')   // remove HTML
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')       // collapse spaces
+    .trim()
+    .toLowerCase();
+}
 $('questionForm').addEventListener('submit',async e=>{
   e.preventDefault(); $('saveMessage').textContent='Saving…';
   try{
@@ -1163,12 +1198,60 @@ if (skills.length > 3) {
     'A question can have a maximum of 3 skills.'
   );
 }
+    const questionText = getEditor('questionEditor');
+
+if (!questionText) {
+  throw new Error('Question text is required.');
+}
+
+// Check for an existing identical regular question
+let duplicate = null;
+
+const regularStructures = [
+  'standalone',
+  'standalone_visual',
+  'va_standalone'
+];
+
+if (regularStructures.includes(state.structure)) {
+  duplicate = await checkDuplicateQuestion(questionText);
+}
+
+if (duplicate) {
+
+  const saveDuplicate = confirm(
+    `Duplicate question detected.\n\n` +
+    `Existing Question ID: ${duplicate.question_id}\n\n` +
+    `An identical question already exists in the question bank.\n\n` +
+    `Press OK to save another duplicate question.\n` +
+    `Press Cancel to start over.`
+  );
+
+  if (!saveDuplicate) {
+
+    $('saveMessage').textContent =
+      'Duplicate question not saved. Form reset.';
+
+    $('questionForm').reset();
+
+    state.selectedSkills = [];
+    state.selectedTraps = [];
+
+    renderSkillsDropdown();
+    renderTrapsDropdown();
+
+    $('questionEditor').innerHTML = '';
+
+    return;
+  }
+}
+    
     const answerType=document.querySelector('input[name="answerType"]:checked').value;
     if(answerType==='MCQ' && !['A','B','C','D'].includes($('correctAnswer').value.trim().toUpperCase()))throw new Error('Correct answer must be A, B, C or D for MCQ.');
     const qid=await getNextId(state.section,year,slot);
     $('questionIdPreview').value=qid;
     const {data:userData}=await sb.auth.getUser();
-    let row={question_id:qid,exam:'CAT',exam_year:Number(year),slot:Number(slot),section:state.section,content_structure:state.structure,question_type:state.section==='QA'?'Quantitative Aptitude':state.section==='DILR'?'Logical Reasoning':state.structure==='rc_question'?'Reading Comprehension':'Verbal Ability',answer_type:answerType,question_text:getEditor('questionEditor'),source:'PYQ',topic_id:Number($('topic').value)||null,subtopic_id:Number($('subtopic').value)||null,concept_id:Number($('concept').value)||null,difficulty:$('difficulty').value,min_expected_time:min,target_time:target,max_expected_time:max,attempt_worthiness:$('attemptWorthiness').value,solution_approach:$('solutionApproach').value||null,correct_answer:$('correctAnswer').value.trim(),created_by:userData.user?.id||null};
+    let row={question_id:qid,exam:'CAT',exam_year:Number(year),slot:Number(slot),section:state.section,content_structure:state.structure,question_type:state.section==='QA'?'Quantitative Aptitude':state.section==='DILR'?'Logical Reasoning':state.structure==='rc_question'?'Reading Comprehension':'Verbal Ability',answer_type:answerType,question_text:questionText,source:'PYQ',topic_id:Number($('topic').value)||null,subtopic_id:Number($('subtopic').value)||null,concept_id:Number($('concept').value)||null,difficulty:$('difficulty').value,min_expected_time:min,target_time:target,max_expected_time:max,attempt_worthiness:$('attemptWorthiness').value,solution_approach:$('solutionApproach').value||null,correct_answer:$('correctAnswer').value.trim(),created_by:userData.user?.id||null};
     const {data:q,error}=await sb.from('questions').insert(row).select('id').single(); if(error)throw error;
     const questionPk=q.id;
     if(answerType==='MCQ'){
