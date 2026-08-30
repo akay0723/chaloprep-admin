@@ -1106,9 +1106,9 @@ function chooseStructure(v){
    * Therefore the normal Question section must disappear.
    */
   $('questionCore').classList.toggle(
-    'hidden',
-    v === 'rc_question'
-  );
+  'hidden',
+  v === 'rc_question' || v === 'set_question'
+);
 
   if(v === 'set_question'){
     buildSetQuestions();
@@ -1214,145 +1214,101 @@ function buildRcQuestions(){
       renderRcQuestions
     );
 }
-function renderRcQuestions(){
+function renderSetQuestions(){
 
   const n = Math.min(
     20,
     Math.max(
       0,
-      Number($('rcQuestionCount').value) || 0
+      Number($('setQuestionCount').value) || 0
     )
   );
 
-  const list = $('rcQuestionList');
+  const list = $('setQuestionList');
 
   if(!list) return;
 
   list.innerHTML = Array.from(
-    {length: n},
+    { length: n },
     (_, i) => `
-
-      <div
-        class="border border-slate-200 rounded-xl p-5">
-
-        <!-- Question heading -->
+      <div class="border border-slate-200 rounded-xl p-5">
 
         <div class="font-bold text-lg mb-4">
-          RC Question ${i + 1}
+          Set Question ${i + 1}
         </div>
 
-
-        <!-- Question text -->
-
         <div class="mb-4">
-
           <label class="label required">
             Question text
           </label>
 
           <textarea
-            class="input rc-q-text min-h-24"
+            class="input set-q-text min-h-24"
             data-index="${i}"
-            placeholder="Enter question text">
-          </textarea>
-
+            placeholder="Enter question text"
+          ></textarea>
         </div>
 
-
-        <!-- Answer type -->
-
         <div class="mb-4">
-
           <label class="label required">
             Answer type
           </label>
 
           <select
-            class="input rc-answer-type"
-            data-index="${i}">
-
-            <option value="MCQ">
-              MCQ
-            </option>
-
-            <option value="TITA">
-              TITA
-            </option>
-
+            class="input set-answer-type"
+            data-index="${i}"
+          >
+            <option value="MCQ">MCQ</option>
+            <option value="TITA">TITA</option>
           </select>
-
         </div>
-
-
-        <!-- Options -->
 
         <div
-          class="grid md:grid-cols-2 gap-4 rc-options"
-          data-index="${i}">
+          class="grid md:grid-cols-2 gap-4 set-options"
+          data-index="${i}"
+        >
 
           <div>
-
-            <label class="label required">
-              Option A
-            </label>
-
+            <label class="label required">Option A</label>
             <input
-              class="input rc-opt"
+              class="input set-opt"
               data-index="${i}"
               data-opt="A"
-              placeholder="Option A">
-
+              placeholder="Option A"
+            >
           </div>
 
-
           <div>
-
-            <label class="label required">
-              Option B
-            </label>
-
+            <label class="label required">Option B</label>
             <input
-              class="input rc-opt"
+              class="input set-opt"
               data-index="${i}"
               data-opt="B"
-              placeholder="Option B">
-
+              placeholder="Option B"
+            >
           </div>
 
-
           <div>
-
-            <label class="label required">
-              Option C
-            </label>
-
+            <label class="label required">Option C</label>
             <input
-              class="input rc-opt"
+              class="input set-opt"
               data-index="${i}"
               data-opt="C"
-              placeholder="Option C">
-
+              placeholder="Option C"
+            >
           </div>
 
-
           <div>
-
-            <label class="label required">
-              Option D
-            </label>
-
+            <label class="label required">Option D</label>
             <input
-              class="input rc-opt"
+              class="input set-opt"
               data-index="${i}"
               data-opt="D"
-              placeholder="Option D">
-
+              placeholder="Option D"
+            >
           </div>
 
         </div>
-
-
-        <!-- Correct answer -->
 
         <div class="mt-4">
 
@@ -1361,50 +1317,40 @@ function renderRcQuestions(){
           </label>
 
           <input
-            class="input rc-answer"
+            class="input set-answer"
             data-index="${i}"
-            placeholder="A / B / C / D">
+            placeholder="A / B / C / D"
+          >
 
         </div>
 
       </div>
-
     `
   ).join('');
 
-
-  /*
-   * Handle MCQ / TITA for each RC question
-   */
-
   document
-    .querySelectorAll('.rc-answer-type')
+    .querySelectorAll('.set-answer-type')
     .forEach(select => {
 
-      select.addEventListener(
-        'change',
-        () => {
+      select.addEventListener('change', () => {
 
-          const index =
-            select.dataset.index;
+        const index = select.dataset.index;
 
-          const optionWrap =
-            document.querySelector(
-              `.rc-options[data-index="${index}"]`
-            );
-
-          if(!optionWrap) return;
-
-          optionWrap.classList.toggle(
-            'hidden',
-            select.value !== 'MCQ'
+        const optionWrap =
+          document.querySelector(
+            `.set-options[data-index="${index}"]`
           );
 
-        }
-      );
+        if(!optionWrap) return;
+
+        optionWrap.classList.toggle(
+          'hidden',
+          select.value !== 'MCQ'
+        );
+
+      });
 
     });
-
 }
 function removeRcQuestions(){const x=$('rcQuestions');if(x)x.remove();}
 function getEditor(id){return $(id).innerHTML.trim();}
