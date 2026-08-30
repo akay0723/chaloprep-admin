@@ -1071,14 +1071,57 @@ function structureHint(v){
   return ({standalone:'One independent question',standalone_visual:'One question with one visual',set_question:'Multiple linked questions in one DILR set',va_standalone:'Independent verbal ability question',rc_question:'One passage with linked RC questions'})[v];
 }
 function chooseStructure(v){
-  state.structure=v; $('contentStructure').value=v;
-  document.querySelectorAll('[data-structure]').forEach(x=>x.classList.toggle('active',x.dataset.structure===v));
+
+  state.structure = v;
+  $('contentStructure').value = v;
+
+  document
+    .querySelectorAll('[data-structure]')
+    .forEach(x =>
+      x.classList.toggle(
+        'active',
+        x.dataset.structure === v
+      )
+    );
+
   $('questionForm').classList.remove('hidden');
-  $('setMeta').classList.toggle('hidden',v!=='set_question');
-  $('rcMeta').classList.toggle('hidden',v!=='rc_question');
-  $('visualWrap').classList.toggle('hidden',v!=='standalone_visual');
-  if(v==='set_question') buildSetQuestions(); else removeSetQuestions();
-  if(v==='rc_question') buildRcQuestions(); else removeRcQuestions();
+
+  $('setMeta').classList.toggle(
+    'hidden',
+    v !== 'set_question'
+  );
+
+  $('rcMeta').classList.toggle(
+    'hidden',
+    v !== 'rc_question'
+  );
+
+  $('visualWrap').classList.toggle(
+    'hidden',
+    v !== 'standalone_visual'
+  );
+
+  /*
+   * RC Passage has its OWN question fields.
+   * Therefore the normal Question section must disappear.
+   */
+  $('questionCore').classList.toggle(
+    'hidden',
+    v === 'rc_question'
+  );
+
+  if(v === 'set_question'){
+    buildSetQuestions();
+  } else {
+    removeSetQuestions();
+  }
+
+  if(v === 'rc_question'){
+    buildRcQuestions();
+  } else {
+    removeRcQuestions();
+  }
+
   loadTopics();
 }
 async function loadTopics(){
@@ -1125,14 +1168,243 @@ function renderSetQuestions(){
 }
 function removeSetQuestions(){const x=$('setQuestions');if(x)x.remove();}
 function buildRcQuestions(){
-  let old=$('rcQuestions'); if(old)old.remove();
-  const sec=document.createElement('section');sec.id='rcQuestions';sec.className='card p-6';
-  sec.innerHTML='<div class="section-title mb-4">RC questions</div><div><label class="label required">Number of questions</label><input id="rcQuestionCount" type="number" min="1" max="20" class="input md:w-64"></div><div id="rcQuestionList" class="space-y-5 mt-5"></div>';
-  $('rcMeta').after(sec); $('rcQuestionCount').addEventListener('input',renderRcQuestions);
+
+  let old = $('rcQuestions');
+
+  if(old){
+    old.remove();
+  }
+
+  const sec = document.createElement('section');
+
+  sec.id = 'rcQuestions';
+  sec.className = 'card p-6';
+
+  sec.innerHTML = `
+    <div class="section-title mb-5">
+      RC Questions
+    </div>
+
+    <div class="mb-5">
+      <label class="label required">
+        Number of questions
+      </label>
+
+      <input
+        id="rcQuestionCount"
+        type="number"
+        min="1"
+        max="20"
+        class="input md:w-64"
+        placeholder="Enter number of questions"
+      >
+    </div>
+
+    <div
+      id="rcQuestionList"
+      class="space-y-6">
+    </div>
+  `;
+
+  $('rcMeta').after(sec);
+
+  $('rcQuestionCount')
+    .addEventListener(
+      'input',
+      renderRcQuestions
+    );
 }
 function renderRcQuestions(){
-  const n=Math.min(20,Math.max(0,Number($('rcQuestionCount').value)||0));const list=$('rcQuestionList');if(!list)return;
-  list.innerHTML=Array.from({length:n},(_,i)=>`<div class="border border-slate-200 rounded-xl p-4"><div class="font-bold mb-3">RC Question ${i+1}</div><textarea class="input rc-q-text min-h-24" data-index="${i}" placeholder="Question text"></textarea><select class="input rc-answer-type mt-3" data-index="${i}"><option>MCQ</option><option>TITA</option></select><input class="input rc-answer mt-3" data-index="${i}" placeholder="Correct answer"></div>`).join('');
+
+  const n = Math.min(
+    20,
+    Math.max(
+      0,
+      Number($('rcQuestionCount').value) || 0
+    )
+  );
+
+  const list = $('rcQuestionList');
+
+  if(!list) return;
+
+  list.innerHTML = Array.from(
+    {length: n},
+    (_, i) => `
+
+      <div
+        class="border border-slate-200 rounded-xl p-5">
+
+        <!-- Question heading -->
+
+        <div class="font-bold text-lg mb-4">
+          RC Question ${i + 1}
+        </div>
+
+
+        <!-- Question text -->
+
+        <div class="mb-4">
+
+          <label class="label required">
+            Question text
+          </label>
+
+          <textarea
+            class="input rc-q-text min-h-24"
+            data-index="${i}"
+            placeholder="Enter question text">
+          </textarea>
+
+        </div>
+
+
+        <!-- Answer type -->
+
+        <div class="mb-4">
+
+          <label class="label required">
+            Answer type
+          </label>
+
+          <select
+            class="input rc-answer-type"
+            data-index="${i}">
+
+            <option value="MCQ">
+              MCQ
+            </option>
+
+            <option value="TITA">
+              TITA
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- Options -->
+
+        <div
+          class="grid md:grid-cols-2 gap-4 rc-options"
+          data-index="${i}">
+
+          <div>
+
+            <label class="label required">
+              Option A
+            </label>
+
+            <input
+              class="input rc-opt"
+              data-index="${i}"
+              data-opt="A"
+              placeholder="Option A">
+
+          </div>
+
+
+          <div>
+
+            <label class="label required">
+              Option B
+            </label>
+
+            <input
+              class="input rc-opt"
+              data-index="${i}"
+              data-opt="B"
+              placeholder="Option B">
+
+          </div>
+
+
+          <div>
+
+            <label class="label required">
+              Option C
+            </label>
+
+            <input
+              class="input rc-opt"
+              data-index="${i}"
+              data-opt="C"
+              placeholder="Option C">
+
+          </div>
+
+
+          <div>
+
+            <label class="label required">
+              Option D
+            </label>
+
+            <input
+              class="input rc-opt"
+              data-index="${i}"
+              data-opt="D"
+              placeholder="Option D">
+
+          </div>
+
+        </div>
+
+
+        <!-- Correct answer -->
+
+        <div class="mt-4">
+
+          <label class="label required">
+            Correct answer
+          </label>
+
+          <input
+            class="input rc-answer"
+            data-index="${i}"
+            placeholder="A / B / C / D">
+
+        </div>
+
+      </div>
+
+    `
+  ).join('');
+
+
+  /*
+   * Handle MCQ / TITA for each RC question
+   */
+
+  document
+    .querySelectorAll('.rc-answer-type')
+    .forEach(select => {
+
+      select.addEventListener(
+        'change',
+        () => {
+
+          const index =
+            select.dataset.index;
+
+          const optionWrap =
+            document.querySelector(
+              `.rc-options[data-index="${index}"]`
+            );
+
+          if(!optionWrap) return;
+
+          optionWrap.classList.toggle(
+            'hidden',
+            select.value !== 'MCQ'
+          );
+
+        }
+      );
+
+    });
+
 }
 function removeRcQuestions(){const x=$('rcQuestions');if(x)x.remove();}
 function getEditor(id){return $(id).innerHTML.trim();}
