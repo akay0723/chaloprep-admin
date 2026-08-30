@@ -1,12 +1,1161 @@
-from pathlib import Path
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChaloPrep Question Manager</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4"></script>
+<style>
+  :root{
+    --cream:#faf8f2;
+    --cream-2:#f3efe4;
+    --navy-950:#0a1c38;
+    --navy-900:#0f2647;
+    --navy-800:#1a3560;
+    --ink:#101f3d;
+    --body-text:#5b6472;
+    --orange:#f4761f;
+    --orange-dark:#dd6512;
+    --orange-tint:#fff1e5;
+    --orange-tint-text:#b34d0a;
+    --border:#e7e2d5;
+    --border-soft:#eceff5;
+  }
+  /* ChaloPrep responsive logo */
+.brand-logo {
+  width: clamp(38px, 5vw, 52px);
+  height: clamp(38px, 5vw, 52px);
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  flex-shrink: 0;
+}
 
-src = Path("/mnt/data/Pasted text(8).txt")
-text = src.read_text(encoding="utf-8")
+.brand-text {
+  min-width: 0;
+}
 
-start = text.index("function buildSetQuestions()")
-end = text.index("function getEditor(id)")
+.brand-title {
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  line-height: 1.2;
+  font-weight: 800;
+}
 
-new_group_ui = r"""
+.brand-subtitle {
+  font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+  line-height: 1.2;
+  color: #cbd5e1;
+}
+  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
+  .card{background:#fff;border:1px solid var(--border-soft);border-radius:16px;box-shadow:0 6px 20px rgba(16,31,61,.05)}
+  .input{width:100%;border:1px solid #dfe1ea;border-radius:10px;padding:.7rem .8rem;outline:none;background:#fff;color:var(--ink);transition:border-color .15s, box-shadow .15s}
+  .input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(244,118,31,.14)}
+  .label{font-size:.82rem;font-weight:700;color:var(--body-text);margin-bottom:.35rem;display:block;letter-spacing:.01em}
+  .btn{border-radius:10px;padding:.7rem 1rem;font-weight:700;transition:background-color .15s, transform .1s}
+  .btn:active{transform:translateY(1px)}
+  .primary{background:var(--orange);color:#fff;box-shadow:0 4px 14px rgba(244,118,31,.28)}.primary:hover{background:var(--orange-dark)}
+  .muted{background:var(--cream-2);color:var(--navy-900)}.muted:hover{background:#eae5d7}
+  .danger{background:#fee2e2;color:#991b1b}
+  .section-title{font-size:1rem;font-weight:800;color:var(--ink);letter-spacing:.01em}
+  .required:after{content:" *";color:var(--orange-dark)}
+  .hidden{display:none}
+  .pill{display:inline-flex;align-items:center;padding:.35rem .65rem;border-radius:999px;background:var(--orange-tint);color:var(--orange-tint-text);font-size:.75rem;font-weight:700;letter-spacing:.02em}
+  .choice{border:1px solid #e3e6ee;border-radius:14px;padding:1rem;text-align:left;cursor:pointer;background:#fff;transition:border-color .15s, background-color .15s, box-shadow .15s}
+  .choice:hover{border-color:var(--orange);background:var(--orange-tint)}
+  .choice.active{border-color:var(--orange);background:var(--orange-tint);box-shadow:0 0 0 2px rgba(244,118,31,.15)}
+  .editor{min-height:150px;border:1px solid #dfe1ea;border-radius:10px;padding:.8rem;outline:none;color:var(--ink)}
+  .editor:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(244,118,31,.14)}
+  ::selection{background:rgba(244,118,31,.22)}
+
+  /* Analytics */
+  .navtab{
+    border:1px solid transparent;
+    border-radius:10px;
+    padding:.65rem .9rem;
+    font-weight:800;
+    color:#243B64;
+    background:transparent;
+    cursor:pointer;
+  }
+  
+  .navtab:hover{
+    background:#E8EEF8;
+  }
+  
+  .navtab.active{
+    background:#E3EAF5;
+    color:#0B2A5B;
+    border-color:#C9D5E8;
+  }
+  
+  .analytics-stat{
+    font-size:1.8rem;
+    font-weight:900;
+    letter-spacing:-.03em;
+  }
+  
+  .analytics-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:1.25rem;
+  }
+  
+  @media(max-width:800px){
+    .analytics-grid{
+      grid-template-columns:1fr;
+    }
+  }
+  
+  .analytics-chart{
+    height:320px;
+    position:relative;
+}
+  
+  .analytics-bar{
+    height:8px;
+    background:#edf1f6;
+    border-radius:999px;
+    overflow:hidden;
+  }
+  
+  .analytics-bar > div{
+    height:100%;
+    background:#0B2A5B;
+    border-radius:999px;
+  }
+
+  .multi-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .35rem .6rem;
+  border-radius: 999px;
+  background: #E3EAF5;
+  color: #0B2A5B;
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.multi-chip button {
+  border: none;
+  background: transparent;
+  color: #0B2A5B;
+  cursor: pointer;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.multi-option {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .65rem .75rem;
+  cursor: pointer;
+}
+
+.multi-option:hover {
+  background: #F1F5F9;
+}
+
+.multi-option input {
+  accent-color: #0B2A5B;
+}
+
+.multi-empty {
+  padding: .75rem;
+  color: #64748B;
+  font-size: .85rem;
+}
+</style>
+</head>
+<body>
+<div id="app" class="min-h-screen">
+  <header style="background:#F1F5F9" class="text-white border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="chaloprep-logo.png.png"
+        alt="ChaloPrep Logo"
+        class="brand-logo">
+        <div>
+          <div class="font-extrabold tracking-tight text-[1.05rem] text-[#082567]">ChaloPrep</div>
+          <div class="text-xs" style="color:#F26B1D">Question Manager</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span
+          id="userEmail"
+          class="text-sm font-medium"
+          style="color:#243B64">
+        </span>
+
+        <button id="tabAnalytics" class="navtab" type="button">
+          Analytics
+        </button>
+        
+        <button
+          id="logout"
+          class="btn bg-[#E3EAF5] text-[#F97316] hover:bg-[#D7E1F0] border border-[#C9D5E8]">
+          Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-5 py-8">
+    <div id="authState" class="card p-6 mb-6" style="color:var(--body-text)">Checking authentication…</div>
+
+    <div id="dashboard" class="hidden">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+        <div>
+          <div class="text-xs font-bold tracking-widest uppercase mb-1" style="color:var(--orange-dark)">Admin · Content Ops</div>
+          <h1 class="text-3xl font-black tracking-tight" style="color:var(--ink)">Question Manager</h1>
+          <p class="mt-1" style="color:var(--body-text)">Create CAT questions using the approved content structures.</p>
+        </div>
+        <button id="resetAll" class="btn muted">Reset form</button>
+      </div>
+
+      <div id="stepChooser" class="card p-6 mb-6">
+        <div class="section-title mb-4">1. Select section</div>
+        <div class="grid md:grid-cols-3 gap-4">
+          <button class="choice" data-section="QA"><div class="font-extrabold">QA</div><div class="text-sm text-slate-500 mt-1">Quantitative Aptitude</div></button>
+          <button class="choice" data-section="DILR"><div class="font-extrabold">DILR</div><div class="text-sm text-slate-500 mt-1">Data Interpretation & Logical Reasoning</div></button>
+          <button class="choice" data-section="VARC"><div class="font-extrabold">VARC</div><div class="text-sm text-slate-500 mt-1">Verbal Ability & Reading Comprehension</div></button>
+        </div>
+
+        <div id="structureWrap" class="hidden mt-6">
+          <div class="section-title mb-4">2. Select content structure</div>
+          <div id="structureChoices" class="grid md:grid-cols-3 gap-4"></div>
+        </div>
+      </div>
+
+      <form id="questionForm" class="hidden space-y-6">
+        <input type="hidden" id="contentStructure">
+        <input type="hidden" id="section">
+
+        <section class="card p-6">
+          <div class="section-title mb-5">Basic identification</div>
+          <div class="grid md:grid-cols-4 gap-4">
+            <div><label class="label">Question ID</label><input id="questionIdPreview" class="input bg-slate-50" readonly value="Will be generated on save"></div>
+            <div><label class="label">Exam</label><input class="input bg-slate-50" value="CAT" readonly></div>
+            <div><label class="label required">Year</label><select id="year" class="input" required><option value="">Select</option></select></div>
+            <div><label class="label required">Slot</label><select id="slot" class="input" required><option value="">Select</option><option value="1">Slot 1</option><option value="2">Slot 2</option><option value="3">Slot 3</option></select></div>
+          </div>
+        </section>
+
+        <section id="setMeta" class="card p-6 hidden">
+          <div class="section-title mb-2">Set information</div><div class="text-sm text-slate-500 mb-5">The set is stored once; every question below is stored separately and linked to this DILR set.</div>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div><label class="label required">Number of questions</label><input id="setQuestionCount" type="number" min="1" max="20" class="input"></div>
+            <div><label class="label required">Set title</label><input id="setTitle" class="input" required></div>
+            <div><label class="label">Set type</label><input id="setType" class="input"></div>
+          </div>
+          <div class="mt-4"><label class="label">Set instructions</label><textarea id="setInstructions" class="input min-h-24"></textarea></div>
+        </section>
+
+        <section id="rcMeta" class="card p-6 hidden">
+          <div class="section-title mb-2">RC passage</div><div class="text-sm text-slate-500 mb-5">The passage is stored once; every RC question below is stored separately and linked to this passage.</div>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div><label class="label">Passage title</label><input id="passageTitle" class="input"></div>
+            <div><label class="label required">Passage domain</label><input id="passageDomain" class="input"></div>
+            <div><label class="label">Passage complexity</label><input id="passageComplexity" class="input"></div>
+          </div>
+          <div class="mt-4"><label class="label required">Passage</label><div id="passageEditor" class="editor" contenteditable="true"></div></div>
+          <div class="mt-4 text-sm text-slate-500">Word count: <span id="wordCount">0</span></div>
+        </section>
+
+        <section id="questionCore" class="card p-6">
+          <div class="section-title mb-5">Question</div>
+          <div class="mb-5">
+            <label class="label required">Answer type</label>
+            <div class="flex gap-3">
+              <label class="flex items-center gap-2"><input type="radio" name="answerType" value="MCQ" checked> MCQ</label>
+              <label class="flex items-center gap-2"><input type="radio" name="answerType" value="TITA"> TITA</label>
+            </div>
+          </div>
+          <label class="label required">Question text</label>
+          <div id="questionEditor" class="editor" contenteditable="true"></div>
+
+          <div id="optionsWrap" class="grid md:grid-cols-2 gap-4 mt-5">
+            <div><label class="label required">Option A</label><input id="optA" class="input"></div>
+            <div><label class="label required">Option B</label><input id="optB" class="input"></div>
+            <div><label class="label required">Option C</label><input id="optC" class="input"></div>
+            <div><label class="label required">Option D</label><input id="optD" class="input"></div>
+          </div>
+          <div class="mt-5">
+            <label class="label required">Correct answer</label>
+            <input id="correctAnswer" class="input" placeholder="A / B / C / D">
+          </div>
+        </section>
+
+        <section id="visualWrap" class="card p-6 hidden">
+          <div class="flex items-center justify-between mb-5"><div class="section-title">Visual</div><span class="pill">1 visual • max 5 MB</span></div>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div><label class="label required">Visual type</label><select id="visualType" class="input"><option value="">Select</option><option>Diagram</option><option>Graph</option><option>Table</option><option>Figure</option><option>Geometry Figure</option><option>Chart</option><option>Network</option><option>Other</option></select></div>
+            <div><label class="label required">File</label><input id="visualFile" type="file" accept="image/png,image/jpeg,image/webp" class="input"></div>
+          </div>
+          <div class="mt-4"><label class="label">Caption / description</label><input id="visualCaption" class="input"></div>
+          <p id="visualError" class="text-sm text-red-600 mt-2"></p>
+        </section>
+
+        <section id="taxonomyWrap" class="card p-6">
+          <div class="section-title mb-5">Taxonomy</div>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div><label class="label required">Topic</label><select id="topic" class="input" required><option value="">Select topic</option></select></div>
+            <div><label class="label required">Sub-topic</label><select id="subtopic" class="input" required disabled><option value="">Select sub-topic</option></select></div>
+            <div><label class="label required">Concept</label><select id="concept" class="input" required disabled><option value="">Select concept</option></select></div>
+          </div>
+          <div class="mt-5 p-4 rounded-xl" style="background:var(--orange-tint);border:1px solid #f7dcc2">
+            <div class="text-sm font-bold" style="color:var(--orange-tint-text)">Tags</div>
+            <div id="derivedTags" class="text-sm mt-1" style="color:#c05f16">Tags will be derived from the selected taxonomy when the tag list is populated.</div>
+          </div>
+        </section>
+
+        <section class="card p-6">
+          <div class="section-title mb-5">Diagnostics</div>
+          <div class="grid md:grid-cols-4 gap-4">
+            <div><label class="label required">Difficulty</label><select id="difficulty" class="input" required><option value="">Select</option><option>Easy</option><option>Moderate</option><option>Difficult</option></select></div>
+            <div><label class="label required">Attempt worthiness</label><select id="attemptWorthiness" class="input" required><option value="">Select</option><option>Must Attempt</option><option>Should Attempt</option><option>Conditional</option><option>Skip</option></select></div>
+            <div><label class="label required">Minimum time (sec)</label><input id="minTime" type="number" min="1" class="input" required></div>
+            <div><label class="label required">Target time (sec)</label><input id="targetTime" type="number" min="1" class="input" required></div>
+          </div>
+          <div class="grid md:grid-cols-3 gap-4 mt-4">
+            <div><label class="label required">Maximum time (sec)</label><input id="maxTime" type="number" min="1" class="input" required></div>
+            <div>
+  <label class="label">
+    Skills <span class="text-slate-400">(max 3)</span>
+  </label>
+
+  <div id="skillsMultiSelect" class="relative">
+    <button
+      type="button"
+      id="skillsMultiButton"
+      class="input text-left flex items-center justify-between"
+    >
+      <span id="skillsSelectedText">Select skills</span>
+      <span>▼</span>
+    </button>
+
+    <div
+      id="skillsDropdown"
+      class="hidden absolute z-50 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-y-auto"
+    >
+    </div>
+  </div>
+
+  <div
+    id="selectedSkills"
+    class="flex flex-wrap gap-2 mt-2"
+  ></div>
+</div>
+
+
+<div>
+  <label class="label">
+    Trap type
+  </label>
+
+  <div id="trapsMultiSelect" class="relative">
+
+    <button
+      type="button"
+      id="trapsMultiButton"
+      class="input text-left flex items-center justify-between"
+    >
+      <span id="trapsSelectedText">Select trap types</span>
+      <span>▼</span>
+    </button>
+
+    <div
+      id="trapsDropdown"
+      class="hidden absolute z-50 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-y-auto"
+    >
+    </div>
+
+  </div>
+
+  <div
+    id="selectedTraps"
+    class="flex flex-wrap gap-2 mt-2"
+  ></div>
+</div>
+          </div>
+          <p id="diagError" class="text-sm text-red-600 mt-3"></p>
+        </section>
+
+        <section id="solutionWrap" class="card p-6">
+          <div class="section-title mb-5">Solution</div>
+          <div><label class="label required">Primary solution</label><div id="primarySolution" class="editor" contenteditable="true"></div></div>
+          <div class="mt-4"><label class="label">Alternate solution</label><div id="alternateSolution" class="editor" contenteditable="true"></div></div>
+          <div class="grid md:grid-cols-2 gap-4 mt-4">
+            <div><label class="label">Key insight</label><textarea id="keyInsight" class="input min-h-24"></textarea></div>
+            <div><label class="label">Shortcut</label><textarea id="shortcut" class="input min-h-24"></textarea></div>
+            <div><label class="label">Common mistake</label><textarea id="commonMistake" class="input min-h-24"></textarea></div>
+            <div><label class="label required">Solution approach</label><textarea id="solutionApproach" class="input min-h-24"></textarea></div>
+          </div>
+        </section>
+
+        <section class="card p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div id="saveMessage" class="text-sm text-slate-500"></div>
+          <button class="btn primary px-7" type="submit">Save Question</button>
+        </section>
+      </form>
+    </div>
+    <!-- ANALYTICS VIEW -->
+<div id="analyticsView" class="hidden">
+
+  <!-- Filters -->
+  <section class="card p-6 mb-6">
+
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
+      <div>
+        <div class="section-title">Question Bank Analytics</div>
+        <div class="text-sm mt-1" style="color:var(--body-text)">
+          Live statistics from the ChaloPrep question bank.
+        </div>
+      </div>
+
+      <button id="refreshAnalytics"
+              type="button"
+              class="btn primary">
+        Refresh
+      </button>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+
+      <div>
+        <label class="label">Section</label>
+        <select id="aSection" class="input">
+          <option value="">All Sections</option>
+          <option value="QA">QA</option>
+          <option value="DILR">DILR</option>
+          <option value="VARC">VARC</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Year</label>
+        <select id="aYear" class="input">
+          <option value="">All Years</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Slot</label>
+        <select id="aSlot" class="input">
+          <option value="">All Slots</option>
+          <option value="1">Slot 1</option>
+          <option value="2">Slot 2</option>
+          <option value="3">Slot 3</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Structure</label>
+        <select id="aStructure" class="input">
+          <option value="">All Structures</option>
+          <option value="standalone">Standalone</option>
+          <option value="standalone_visual">Standalone + Visual</option>
+          <option value="set_question">DILR Set Question</option>
+          <option value="va_standalone">VA Standalone</option>
+          <option value="rc_question">RC Question</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Topic</label>
+        <select id="aTopic" class="input">
+          <option value="">All Topics</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Difficulty</label>
+        <select id="aDifficulty" class="input">
+          <option value="">All Difficulty</option>
+          <option value="Easy">Easy</option>
+          <option value="Moderate">Moderate</option>
+          <option value="Difficult">Difficult</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Source</label>
+        <select id="aSource" class="input">
+          <option value="">All Sources</option>
+          <option value="PYQ">PYQ</option>
+        </select>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- Status -->
+  <div id="analyticsStatus"
+       class="text-sm mb-4"
+       style="color:var(--body-text)">
+    Loading analytics…
+  </div>
+
+
+  <!-- KPI CARDS -->
+  <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+    <div class="card p-5">
+      <div class="text-xs font-bold" style="color:var(--body-text)">
+        Total Questions
+      </div>
+      <div id="aTotal"
+           class="analytics-stat"
+           style="color:var(--navy-900)">
+        0
+      </div>
+    </div>
+
+    <div class="card p-5">
+      <div class="text-xs font-bold" style="color:var(--body-text)">
+        QA
+      </div>
+      <div id="aQA" class="analytics-stat">0</div>
+    </div>
+
+    <div class="card p-5">
+      <div class="text-xs font-bold" style="color:var(--body-text)">
+        DILR
+      </div>
+      <div id="aDILR" class="analytics-stat">0</div>
+    </div>
+
+    <div class="card p-5">
+      <div class="text-xs font-bold" style="color:var(--body-text)">
+        VARC
+      </div>
+      <div id="aVARC" class="analytics-stat">0</div>
+    </div>
+
+  </section>
+
+
+  <!-- CHARTS -->
+  <section class="analytics-grid mb-6">
+
+    <div class="card p-5 analytics-chart">
+      <div class="font-extrabold mb-3">
+        Questions by Year
+      </div>
+      <canvas id="aYearChart"></canvas>
+    </div>
+
+    <div class="card p-5 analytics-chart">
+      <div class="font-extrabold mb-3">
+        Section Distribution
+      </div>
+      <canvas id="aSectionChart"></canvas>
+    </div>
+
+    <div class="card p-5 analytics-chart">
+      <div class="font-extrabold mb-3">
+        Difficulty Distribution
+      </div>
+      <canvas id="aDifficultyChart"></canvas>
+    </div>
+
+    <div class="card p-5 analytics-chart">
+      <div class="font-extrabold mb-3">
+        Content Structure
+      </div>
+      <canvas id="aStructureChart"></canvas>
+    </div>
+
+  </section>
+
+
+  <!-- COVERAGE -->
+  <section class="grid lg:grid-cols-2 gap-6">
+
+    <div class="card p-6">
+      <div class="section-title mb-4">
+        Topic Coverage
+      </div>
+
+      <div id="aTopicTable">
+        <div class="text-sm" style="color:var(--body-text)">
+          No data yet.
+        </div>
+      </div>
+    </div>
+
+
+    <div class="card p-6">
+      <div class="section-title mb-4">
+        Question Bank Checks
+      </div>
+
+      <div id="aChecks">
+        <div class="text-sm" style="color:var(--body-text)">
+          No data yet.
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+</div>
+  </main>
+
+  <footer style="background:var(--navy-950)" class="mt-10">
+    <div class="max-w-7xl mx-auto px-5 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs" style="color:#8994b3">
+      <span>ChaloPrep · Internal content tooling</span>
+      <span>Built for <strong style="color:#c3cbe0">CAT</strong> &nbsp;·&nbsp; <strong style="color:#c3cbe0">AI-personalised</strong> question data</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://yhufgyeeqjdnmilnihbt.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodWZneWVlcWpkbm1pbG5paGJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0Njk3ODcsImV4cCI6MjA5NDA0NTc4N30.eSigz2_Ll3EGpw-MLsn2toAa4-2xrPwdmgE3Xc3roHY';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const state = {
+  section: null,
+  structure: null,
+  topics: [],
+  subtopics: [],
+  concepts: [],
+
+  allSkills: [],
+  allTraps: [],
+
+  selectedSkills: [],
+  selectedTraps: []
+};
+
+const $ = id => document.getElementById(id);
+const structures = {
+  QA: [
+    ['standalone','Standalone'],
+    ['standalone_visual','Standalone + Visual']
+  ],
+  DILR: [
+    ['standalone','Standalone'],
+    ['standalone_visual','Standalone + Visual'],
+    ['set_question','Set']
+  ],
+  VARC: [
+    ['va_standalone','VA Standalone'],
+    ['rc_question','RC Passage']
+  ]
+};
+
+function setYears(){ for(let y=2025;y>=2020;y--){ $('year').insertAdjacentHTML('beforeend', `<option value="${y}">${y}</option>`); } }
+
+async function init(){
+  setYears();
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session){ $('authState').textContent='No active session. Please log in through the ChaloPrep login page.'; return; }
+  $('authState').classList.add('hidden'); $('dashboard').classList.remove('hidden');
+  $('userEmail').textContent = session.user.email || '';
+  await loadAuxiliary();
+}
+/* =========================================================
+   SKILLS + TRAP TYPES
+   ========================================================= */
+
+async function loadAuxiliary(){
+
+  const [skillsResult, trapsResult] = await Promise.all([
+
+    sb
+      .from('skills')
+      .select('id,name,section')
+      .order('name'),
+
+    sb
+      .from('trap_types')
+      .select('id,name,section')
+      .order('name')
+
+  ]);
+
+
+  if(skillsResult.error){
+
+    console.error(
+      'Skills loading error:',
+      skillsResult.error
+    );
+
+  }
+
+
+  if(trapsResult.error){
+
+    console.error(
+      'Trap types loading error:',
+      trapsResult.error
+    );
+
+  }
+
+
+  state.allSkills =
+    skillsResult.data || [];
+
+  state.allTraps =
+    trapsResult.data || [];
+
+}
+
+function loadSectionSkillsAndTraps() {
+
+  const section = state.section;
+
+  state.selectedSkills = [];
+  state.selectedTraps = [];
+
+  if (!section) {
+    renderSkillsDropdown();
+    renderTrapsDropdown();
+    return;
+  }
+
+  renderSkillsDropdown();
+  renderTrapsDropdown();
+}
+
+function getSectionSkills() {
+
+  return (state.allSkills || [])
+    .filter(skill => skill.section === state.section)
+    .sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+}
+
+
+function getSectionTraps() {
+
+  return (state.allTraps || [])
+    .filter(trap => trap.section === state.section)
+    .sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+}
+
+function renderSkillsDropdown() {
+
+  const dropdown = $('skillsDropdown');
+
+  if (!dropdown) return;
+
+  const skills = getSectionSkills();
+
+  if (!skills.length) {
+
+    dropdown.innerHTML =
+      '<div class="multi-empty">No skills available for this section.</div>';
+
+    $('skillsSelectedText').textContent =
+      'No skills available';
+
+    return;
+  }
+
+  dropdown.innerHTML = skills.map(skill => {
+
+    const checked =
+      state.selectedSkills.includes(Number(skill.id));
+
+    return `
+      <label class="multi-option">
+
+        <input
+          type="checkbox"
+          value="${skill.id}"
+          ${checked ? 'checked' : ''}
+          onchange="toggleSkill(${skill.id})"
+        >
+
+        <span>
+          ${escapeHtml(skill.name)}
+        </span>
+
+      </label>
+    `;
+
+  }).join('');
+
+  updateSelectedSkillsUI();
+}
+
+function renderTrapsDropdown() {
+
+  const dropdown = $('trapsDropdown');
+
+  if (!dropdown) return;
+
+  const traps = getSectionTraps();
+
+  if (!traps.length) {
+
+    dropdown.innerHTML =
+      '<div class="multi-empty">No trap types available for this section.</div>';
+
+    $('trapsSelectedText').textContent =
+      'No trap types available';
+
+    return;
+  }
+
+  dropdown.innerHTML = traps.map(trap => {
+
+    const checked =
+      state.selectedTraps.includes(Number(trap.id));
+
+    return `
+      <label class="multi-option">
+
+        <input
+          type="checkbox"
+          value="${trap.id}"
+          ${checked ? 'checked' : ''}
+          onchange="toggleTrap(${trap.id})"
+        >
+
+        <span>
+          ${escapeHtml(trap.name)}
+        </span>
+
+      </label>
+    `;
+
+  }).join('');
+
+  updateSelectedTrapsUI();
+}
+
+function toggleSkill(skillId) {
+
+  skillId = Number(skillId);
+
+  const index =
+    state.selectedSkills.indexOf(skillId);
+
+  if (index !== -1) {
+
+    state.selectedSkills.splice(index, 1);
+
+  } else {
+
+    if (state.selectedSkills.length >= 3) {
+
+      $('diagError').textContent =
+        'Maximum 3 skills can be selected for a question.';
+
+      renderSkillsDropdown();
+
+      return;
+    }
+
+    state.selectedSkills.push(skillId);
+
+  }
+
+  $('diagError').textContent = '';
+
+  renderSkillsDropdown();
+}
+
+function toggleTrap(trapId) {
+
+  trapId = Number(trapId);
+
+  const index =
+    state.selectedTraps.indexOf(trapId);
+
+  if (index !== -1) {
+
+    state.selectedTraps.splice(index, 1);
+
+  } else {
+
+    state.selectedTraps.push(trapId);
+
+  }
+
+  renderTrapsDropdown();
+}
+
+function updateSelectedSkillsUI() {
+
+  const container =
+    $('selectedSkills');
+
+  const selected =
+    (state.allSkills || [])
+      .filter(skill =>
+        state.selectedSkills.includes(Number(skill.id))
+      );
+
+  $('skillsSelectedText').textContent =
+    selected.length
+      ? `${selected.length} skill${selected.length > 1 ? 's' : ''} selected`
+      : 'Select skills';
+
+  container.innerHTML =
+    selected.map(skill => `
+      <span class="multi-chip">
+
+        ${escapeHtml(skill.name)}
+
+        <button
+          type="button"
+          onclick="toggleSkill(${skill.id})"
+        >
+          ×
+        </button>
+
+      </span>
+    `).join('');
+}
+
+function updateSelectedTrapsUI() {
+
+  const container =
+    $('selectedTraps');
+
+  const selected =
+    (state.allTraps || [])
+      .filter(trap =>
+        state.selectedTraps.includes(Number(trap.id))
+      );
+
+  $('trapsSelectedText').textContent =
+    selected.length
+      ? `${selected.length} trap${selected.length > 1 ? 's' : ''} selected`
+      : 'Select trap types';
+
+  container.innerHTML =
+    selected.map(trap => `
+      <span class="multi-chip">
+
+        ${escapeHtml(trap.name)}
+
+        <button
+          type="button"
+          onclick="toggleTrap(${trap.id})"
+        >
+          ×
+        </button>
+
+      </span>
+    `).join('');
+}
+
+$('skillsMultiButton').addEventListener('click', () => {
+
+  $('skillsDropdown')
+    .classList.toggle('hidden');
+
+  $('trapsDropdown')
+    .classList.add('hidden');
+
+});
+
+
+$('trapsMultiButton').addEventListener('click', () => {
+
+  $('trapsDropdown')
+    .classList.toggle('hidden');
+
+  $('skillsDropdown')
+    .classList.add('hidden');
+
+});
+
+document.addEventListener('click', e => {
+
+  if (!$('skillsMultiSelect').contains(e.target)) {
+
+    $('skillsDropdown')
+      .classList.add('hidden');
+
+  }
+
+  if (!$('trapsMultiSelect').contains(e.target)) {
+
+    $('trapsDropdown')
+      .classList.add('hidden');
+
+  }
+
+});
+
+
+
+
+
+
+
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+document.querySelectorAll('[data-section]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+
+    const newSection = btn.dataset.section;
+
+    // Update selected section
+    state.section = newSection;
+    $('section').value = newSection;
+
+    loadSectionSkillsAndTraps();
+
+    // Highlight selected section
+    document.querySelectorAll('[data-section]')
+      .forEach(x => x.classList.remove('active'));
+
+    btn.classList.add('active');
+
+    // IMPORTANT:
+    // Clear taxonomy from previously selected section
+    $('topic').value = '';
+
+    $('subtopic').innerHTML =
+      '<option value="">Select sub-topic</option>';
+
+    $('concept').innerHTML =
+      '<option value="">Select concept</option>';
+
+    $('subtopic').disabled = true;
+    $('concept').disabled = true;
+
+    // Clear derived tags
+    $('derivedTags').textContent =
+      'Tags will be derived from the selected taxonomy when the tag list is populated.';
+
+    // Load structures for the selected section
+    $('structureChoices').innerHTML =
+      structures[newSection]
+        .map(([v, l]) => `
+          <button
+            type="button"
+            class="choice"
+            data-structure="${v}"
+          >
+            <div class="font-extrabold">${l}</div>
+            <div class="text-sm text-slate-500 mt-1">
+              ${structureHint(v)}
+            </div>
+          </button>
+        `)
+        .join('');
+
+    $('structureWrap').classList.remove('hidden');
+
+    // Attach structure selection events
+    document.querySelectorAll('[data-structure]')
+      .forEach(b => {
+        b.addEventListener('click', () => {
+          chooseStructure(b.dataset.structure);
+        });
+      });
+
+    // Load topics for the NEW section
+    await loadTopics();
+  });
+});
+function structureHint(v){
+  return ({standalone:'One independent question',standalone_visual:'One question with one visual',set_question:'Multiple linked questions in one DILR set',va_standalone:'Independent verbal ability question',rc_question:'One passage with linked RC questions'})[v];
+}
+function chooseStructure(v){
+
+  state.structure = v;
+  $('contentStructure').value = v;
+
+  document
+    .querySelectorAll('[data-structure]')
+    .forEach(x =>
+      x.classList.toggle(
+        'active',
+        x.dataset.structure === v
+      )
+    );
+
+  $('questionForm').classList.remove('hidden');
+
+  $('setMeta').classList.toggle(
+    'hidden',
+    v !== 'set_question'
+  );
+
+  $('rcMeta').classList.toggle(
+    'hidden',
+    v !== 'rc_question'
+  );
+
+  $('visualWrap').classList.toggle(
+    'hidden',
+    v !== 'standalone_visual'
+  );
+
+  /*
+   * RC Passage has its OWN question fields.
+   * Therefore the normal Question section must disappear.
+   */
+  $('questionCore').classList.toggle(
+  'hidden',
+  v === 'rc_question' || v === 'set_question'
+);
+
+  if(v === 'set_question'){
+    buildSetQuestions();
+  } else {
+    removeSetQuestions();
+  }
+
+  if(v === 'rc_question'){
+    buildRcQuestions();
+  } else {
+    removeRcQuestions();
+  }
+
+  loadTopics();
+}
+async function loadTopics(){
+  const {data,error}=await sb.from('topics').select('id,name').eq('section',state.section).order('name');
+  state.topics=data||[]; $('topic').innerHTML='<option value="">Select topic</option>'+state.topics.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+  $('subtopic').innerHTML='<option value="">Select sub-topic</option>'; $('concept').innerHTML='<option value="">Select concept</option>';
+  $('subtopic').disabled=true; $('concept').disabled=true;
+}
+$('topic').addEventListener('change',async e=>{
+  $('concept').innerHTML='<option value="">Select concept</option>'; $('concept').disabled=true;
+  const {data}=await sb.from('subtopics').select('id,name').eq('topic_id',e.target.value).order('name');
+  $('subtopic').innerHTML='<option value="">Select sub-topic</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
+  $('subtopic').disabled=false;
+});
+$('subtopic').addEventListener('change',async e=>{
+  const {data}=await sb.from('concepts').select('id,name').eq('subtopic_id',e.target.value).order('name');
+  $('concept').innerHTML='<option value="">Select concept</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
+  $('concept').disabled=false;
+});
+document.querySelectorAll('input[name="answerType"]').forEach(r=>r.addEventListener('change',()=>updateAnswerType()));
+function updateAnswerType(){
+  const t=document.querySelector('input[name="answerType"]:checked').value;
+  $('optionsWrap').classList.toggle('hidden',t!=='MCQ');
+  $('correctAnswer').placeholder=t==='MCQ'?'A / B / C / D':'Enter answer';
+}
+
+$('visualFile').addEventListener('change',()=>{
+  const f=$('visualFile').files[0]; $('visualError').textContent='';
+  if(!f)return;
+  if(f.size>5*1024*1024){ $('visualError').textContent='Image exceeds the 5 MB limit.'; $('visualFile').value=''; return; }
+  if(!['image/png','image/jpeg','image/webp'].includes(f.type)){ $('visualError').textContent='Only PNG, JPG/JPEG, and WEBP images are allowed.'; $('visualFile').value=''; }
+});
+$('passageEditor').addEventListener('input',()=>{$('wordCount').textContent=($('passageEditor').innerText.trim().match(/\S+/g)||[]).length;});
+
 /* =========================================================
    DILR SET + RC GROUP QUESTION BUILDERS
    Each child question is stored as its own row in `questions`
@@ -713,14 +1862,55 @@ async function saveRcPassage(year, slot) {
   return {passageId, childIds};
 }
 
-"""
-text = text[:start] + new_group_ui + text[end:]
+function getEditor(id){return $(id).innerHTML.trim();}
+async function getNextId(section,year,slot){
+  const {data,error}=await sb.rpc('next_question_number',{p_exam:'CAT',p_year:Number(year),p_slot:Number(slot),p_section:section});
+  if(error) throw error;
+  return `CAT${year}_S${slot}_${section}_${String(data).padStart(3,'0')}`;
+}
+async function uploadVisual(questionId){
+  const f=$('visualFile').files[0]; if(!f)return null;
+  const ext=f.name.split('.').pop().toLowerCase(); const path=`${state.section}/${questionId}/visual.${ext}`;
+  const {error}=await sb.storage.from('QUESTIONS-VISUALS').upload(path,f,{upsert:true,contentType:f.type});
+  if(error)throw error;
+  return {visual_type:$('visualType').value,storage_path:path,caption:$('visualCaption').value||null,file_size_bytes:f.size,mime_type:f.type};
+}
 
-# Replace the entire submit handler
-submit_start = text.index("$('questionForm').addEventListener('submit'")
-reset_start = text.index("$('resetAll').addEventListener", submit_start)
+async function checkDuplicateQuestion(questionText) {
 
-new_submit = r"""$('questionForm').addEventListener('submit', async e => {
+  const normalizedText = normalizeQuestionText(questionText);
+
+  if (!normalizedText) {
+    return false;
+  }
+
+  const { data, error } = await sb
+    .from('questions')
+    .select('id, question_id, question_text')
+    .eq('section', state.section)
+    .eq('content_structure', state.structure);
+
+  if (error) {
+    console.error('Duplicate check error:', error);
+    throw error;
+  }
+
+  return (data || []).find(row =>
+    normalizeQuestionText(row.question_text) === normalizedText
+  ) || null;
+}
+
+
+function normalizeQuestionText(text) {
+
+  return String(text || '')
+    .replace(/<[^>]*>/g, ' ')   // remove HTML
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')       // collapse spaces
+    .trim()
+    .toLowerCase();
+}
+$('questionForm').addEventListener('submit', async e => {
   e.preventDefault();
   $('saveMessage').textContent = 'Saving…';
   $('diagError').textContent = '';
@@ -968,34 +2158,710 @@ new_submit = r"""$('questionForm').addEventListener('submit', async e => {
   }
 });
 
-"""
-text = text[:submit_start] + new_submit + text[reset_start:]
+$('resetAll').addEventListener('click',()=>location.reload());
+$('logout').addEventListener('click',async()=>{await sb.auth.signOut();location.href='index.html';});
+/* =========================================================
+   ANALYTICS
+   ========================================================= */
 
-# Fix setMeta placement: set questions should follow setMeta, already done.
-# Make group metadata required where appropriate in UI
-text = text.replace(
-    '<div><label class="label">Set title</label><input id="setTitle" class="input"></div>',
-    '<div><label class="label required">Set title</label><input id="setTitle" class="input" required></div>'
-)
-text = text.replace(
-    '<div><label class="label">Set type</label><input id="setType" class="input"></div>',
-    '<div><label class="label">Set type</label><input id="setType" class="input"></div>'
-)
+let analyticsRows = [];
+let analyticsTopics = [];
+let analyticsCharts = {};
 
-# RC domain already required. Add title optional remains.
 
-# Add reset of group metadata after successful group save? Keep values for possible next set; better clear question cards only.
-# Add a note in UI after RC passage label
-text = text.replace(
-    '<div class="section-title mb-5">RC passage</div>',
-    '<div class="section-title mb-2">RC passage</div><div class="text-sm text-slate-500 mb-5">The passage is stored once; every RC question below is stored separately and linked to this passage.</div>'
-)
-text = text.replace(
-    '<div class="section-title mb-5">Set information</div>',
-    '<div class="section-title mb-2">Set information</div><div class="text-sm text-slate-500 mb-5">The set is stored once; every question below is stored separately and linked to this DILR set.</div>'
-)
+/* ---------- View switching ---------- */
 
-out = Path("/mnt/data/chaloprep-question-manager-updated.html")
-out.write_text(text, encoding="utf-8")
-print(f"Created: {out}")
-print(f"Size: {out.stat().st_size} bytes")
+let inAnalytics = false;
+
+$('tabAnalytics').addEventListener('click', async () => {
+  inAnalytics = !inAnalytics;
+
+  if (inAnalytics) {
+    $('dashboard').classList.add('hidden');
+    $('analyticsView').classList.remove('hidden');
+    $('tabAnalytics').textContent = 'Question Manager';
+    $('tabAnalytics').classList.add('active');
+    await loadAnalytics();
+  } else {
+    $('analyticsView').classList.add('hidden');
+    $('dashboard').classList.remove('hidden');
+    $('tabAnalytics').textContent = 'Analytics';
+    $('tabAnalytics').classList.remove('active');
+  }
+});
+
+
+/* ---------- Analytics years ---------- */
+
+function setAnalyticsYears(){
+
+  const yearSelect = $('aYear');
+
+  if(!yearSelect) return;
+
+  yearSelect.innerHTML =
+    '<option value="">All Years</option>';
+
+  for(let y = 2025; y >= 2020; y--){
+
+    yearSelect.insertAdjacentHTML(
+      'beforeend',
+      `<option value="${y}">${y}</option>`
+    );
+
+  }
+
+}
+
+
+/* ---------- Load questions + topics ---------- */
+
+async function loadAnalytics(){
+
+  $('analyticsStatus').textContent =
+    'Loading question bank…';
+
+
+  const [
+    questionsResult,
+    topicsResult
+  ] = await Promise.all([
+
+    sb
+      .from('questions')
+      .select(`
+        id,
+        question_id,
+        exam_year,
+        slot,
+        section,
+        content_structure,
+        source,
+        topic_id,
+        difficulty,
+        attempt_worthiness,
+        min_expected_time,
+        target_time,
+        max_expected_time,
+        solution_approach
+      `),
+
+    sb
+      .from('topics')
+      .select('id,name,section')
+      .order('name')
+
+  ]);
+
+
+  if(questionsResult.error){
+
+    console.error(
+      'Analytics question error:',
+      questionsResult.error
+    );
+
+    $('analyticsStatus').textContent =
+      'Unable to load questions: ' +
+      questionsResult.error.message;
+
+    return;
+
+  }
+
+
+  if(topicsResult.error){
+
+    console.error(
+      'Analytics topic error:',
+      topicsResult.error
+    );
+
+    $('analyticsStatus').textContent =
+      'Unable to load topics: ' +
+      topicsResult.error.message;
+
+    return;
+
+  }
+
+
+  analyticsRows =
+    questionsResult.data || [];
+
+  analyticsTopics =
+    topicsResult.data || [];
+
+
+  populateAnalyticsTopics();
+
+  renderAnalytics();
+
+}
+
+
+/* ---------- Topic filter ---------- */
+
+function populateAnalyticsTopics(){
+
+  const section =
+    $('aSection').value;
+
+  const topicList =
+    analyticsTopics.filter(topic =>
+      !section ||
+      topic.section === section
+    );
+
+
+  $('aTopic').innerHTML =
+    '<option value="">All Topics</option>' +
+
+    topicList.map(topic => `
+      <option value="${topic.id}">
+        ${escapeHtml(topic.name)}
+      </option>
+    `).join('');
+
+}
+
+
+/* ---------- Filtering ---------- */
+
+function getFilteredAnalyticsRows(){
+
+  const section =
+    $('aSection').value;
+
+  const year =
+    $('aYear').value;
+
+  const slot =
+    $('aSlot').value;
+
+  const structure =
+    $('aStructure').value;
+
+  const topic =
+    $('aTopic').value;
+
+  const difficulty =
+    $('aDifficulty').value;
+
+  const source =
+    $('aSource').value;
+
+
+  return analyticsRows.filter(row => {
+
+    if(section &&
+       row.section !== section)
+      return false;
+
+    if(year &&
+       String(row.exam_year) !== year)
+      return false;
+
+    if(slot &&
+       String(row.slot) !== slot)
+      return false;
+
+    if(structure &&
+       row.content_structure !== structure)
+      return false;
+
+    if(topic &&
+       String(row.topic_id) !== topic)
+      return false;
+
+    if(difficulty &&
+       row.difficulty !== difficulty)
+      return false;
+
+    if(source &&
+       row.source !== source)
+      return false;
+
+    return true;
+
+  });
+
+}
+
+
+/* ---------- Count helper ---------- */
+
+function analyticsCounts(rows,key,order){
+
+  const counts = {};
+
+  rows.forEach(row => {
+
+    const value =
+      row[key] || 'Unknown';
+
+    counts[value] =
+      (counts[value] || 0) + 1;
+
+  });
+
+
+  const labels =
+    order.filter(label =>
+      counts[label] !== undefined
+    );
+
+
+  const values =
+    labels.map(label =>
+      counts[label]
+    );
+
+
+  return {
+    labels,
+    values
+  };
+
+}
+
+
+/* ---------- Chart ---------- */
+
+function drawAnalyticsChart(
+  canvasId,
+  type,
+  labels,
+  values
+){
+
+  if(analyticsCharts[canvasId]){
+
+    analyticsCharts[canvasId].destroy();
+
+  }
+
+
+  const canvas =
+    $(canvasId);
+
+  if(!canvas) return;
+
+
+  analyticsCharts[canvasId] =
+    new Chart(
+      canvas,
+      {
+        type,
+
+        data:{
+          labels,
+
+          datasets:[
+            {
+              data:values,
+
+              backgroundColor:[
+                '#0B2A5B',
+                '#64748B',
+                '#94A3B8',
+                '#CBD5E1',
+                '#F97316',
+                '#E2E8F0'
+              ],
+
+              borderColor:'#FFFFFF',
+
+              borderWidth:1
+            }
+          ]
+        },
+
+        options:{
+          responsive:true,
+
+          maintainAspectRatio:false,
+
+          plugins:{
+            legend:{
+              display:type !== 'bar',
+              position:'bottom'
+            }
+          },
+
+          scales:
+            type === 'bar'
+              ? {
+                  y:{
+                    beginAtZero:true,
+
+                    ticks:{
+                      precision:0
+                    }
+                  }
+                }
+              : undefined
+
+        }
+
+      }
+    );
+
+}
+
+
+/* ---------- Main analytics renderer ---------- */
+
+function renderAnalytics(){
+
+  const rows =
+    getFilteredAnalyticsRows();
+
+
+  $('analyticsStatus').textContent =
+    `Showing ${rows.length} of ${analyticsRows.length} questions`;
+
+
+  /* KPI */
+
+  $('aTotal').textContent =
+    rows.length;
+
+
+  $('aQA').textContent =
+    rows.filter(row =>
+      row.section === 'QA'
+    ).length;
+
+
+  $('aDILR').textContent =
+    rows.filter(row =>
+      row.section === 'DILR'
+    ).length;
+
+
+  $('aVARC').textContent =
+    rows.filter(row =>
+      row.section === 'VARC'
+    ).length;
+
+
+  /* Year */
+
+  let result =
+    analyticsCounts(
+      rows,
+      'exam_year',
+      [
+        '2020',
+        '2021',
+        '2022',
+        '2023',
+        '2024',
+        '2025'
+      ]
+    );
+
+
+  drawAnalyticsChart(
+    'aYearChart',
+    'bar',
+    result.labels,
+    result.values
+  );
+
+
+  /* Section */
+
+  result =
+    analyticsCounts(
+      rows,
+      'section',
+      [
+        'QA',
+        'DILR',
+        'VARC'
+      ]
+    );
+
+
+  drawAnalyticsChart(
+    'aSectionChart',
+    'doughnut',
+    result.labels,
+    result.values
+  );
+
+
+  /* Difficulty */
+
+  result =
+    analyticsCounts(
+      rows,
+      'difficulty',
+      [
+        'Easy',
+        'Moderate',
+        'Difficult'
+      ]
+    );
+
+
+  drawAnalyticsChart(
+    'aDifficultyChart',
+    'doughnut',
+    result.labels,
+    result.values
+  );
+
+
+  /* Structure */
+
+  result =
+    analyticsCounts(
+      rows,
+      'content_structure',
+      [
+        'standalone',
+        'standalone_visual',
+        'set_question',
+        'va_standalone',
+        'rc_question'
+      ]
+    );
+
+
+  drawAnalyticsChart(
+    'aStructureChart',
+    'bar',
+    result.labels,
+    result.values
+  );
+
+
+  renderTopicCoverage(rows);
+
+  renderAnalyticsChecks(rows);
+
+}
+
+
+/* ---------- Topic coverage ---------- */
+
+function renderTopicCoverage(rows){
+
+  const counts = {};
+
+
+  rows.forEach(row => {
+
+    const topic =
+      analyticsTopics.find(
+        item =>
+          String(item.id) ===
+          String(row.topic_id)
+      );
+
+
+    const name =
+      topic?.name ||
+      'Unassigned';
+
+
+    counts[name] =
+      (counts[name] || 0) + 1;
+
+  });
+
+
+  const entries =
+    Object.entries(counts)
+      .sort((a,b) => b[1] - a[1]);
+
+
+  if(!entries.length){
+
+    $('aTopicTable').innerHTML = `
+      <div class="text-sm"
+           style="color:var(--body-text)">
+        No questions match the current filters.
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  const max =
+    Math.max(
+      ...entries.map(
+        entry => entry[1]
+      )
+    );
+
+
+  $('aTopicTable').innerHTML =
+    entries.map(
+      ([name,count]) => {
+
+        const width =
+          max
+            ? (count / max) * 100
+            : 0;
+
+
+        return `
+          <div class="flex items-center gap-3 mb-3">
+
+            <div class="w-40 text-sm font-medium truncate"
+                 title="${escapeHtml(name)}">
+              ${escapeHtml(name)}
+            </div>
+
+            <div class="analytics-bar flex-1">
+              <div style="width:${width}%"></div>
+            </div>
+
+            <div class="w-8 text-right text-sm font-bold">
+              ${count}
+            </div>
+
+          </div>
+        `;
+
+      }
+    ).join('');
+
+}
+
+
+/* ---------- Data quality checks ---------- */
+
+function renderAnalyticsChecks(rows){
+
+  const checks = [
+
+    {
+      name:'Missing topic',
+      count:rows.filter(row =>
+        !row.topic_id
+      ).length
+    },
+
+    {
+      name:'Missing difficulty',
+      count:rows.filter(row =>
+        !row.difficulty
+      ).length
+    },
+
+    {
+      name:'Missing attempt worthiness',
+      count:rows.filter(row =>
+        !row.attempt_worthiness
+      ).length
+    },
+
+    {
+      name:'Missing solution approach',
+      count:rows.filter(row =>
+        !row.solution_approach ||
+        !row.solution_approach.trim()
+      ).length
+    },
+
+    {
+      name:'Incomplete time data',
+      count:rows.filter(row =>
+        !(Number(row.min_expected_time) > 0) ||
+        !(Number(row.target_time) > 0) ||
+        !(Number(row.max_expected_time) > 0)
+      ).length
+    }
+
+  ];
+
+
+  $('aChecks').innerHTML =
+    checks.map(check => {
+
+      const good =
+        check.count === 0;
+
+
+      return `
+        <div class="flex items-center justify-between
+                    p-3 rounded-xl bg-slate-50">
+
+          <span class="text-sm font-medium">
+            ${check.name}
+          </span>
+
+          <span
+            class="badge"
+            style="
+              background:${good ? '#ECFDF5' : '#FFF7ED'};
+              color:${good ? '#047857' : '#C2410C'};
+            "
+          >
+            ${check.count}
+            ${check.count === 1 ? 'issue' : 'issues'}
+          </span>
+
+        </div>
+      `;
+
+    }).join('');
+
+}
+
+
+/* ---------- Analytics filters ---------- */
+
+[
+  'aSection',
+  'aYear',
+  'aSlot',
+  'aStructure',
+  'aTopic',
+  'aDifficulty',
+  'aSource'
+
+].forEach(id => {
+
+  $(id).addEventListener(
+    'change',
+    () => {
+
+      if(id === 'aSection'){
+
+        populateAnalyticsTopics();
+
+      }
+
+      renderAnalytics();
+
+    }
+  );
+
+});
+
+
+/* ---------- Refresh ---------- */
+
+$('refreshAnalytics')
+  .addEventListener(
+    'click',
+    loadAnalytics
+  );
+
+
+/* ---------- Initialize analytics years ---------- */
+
+setAnalyticsYears();
+  
+init();
+</script>
+</body>
+</html>
