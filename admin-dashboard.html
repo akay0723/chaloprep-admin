@@ -1,1456 +1,959 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ChaloPrep Question Manager</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4"></script>
-<style>
-  :root{
-    --cream:#faf8f2;
-    --cream-2:#f3efe4;
-    --navy-950:#0a1c38;
-    --navy-900:#0f2647;
-    --navy-800:#1a3560;
-    --ink:#101f3d;
-    --body-text:#5b6472;
-    --orange:#f4761f;
-    --orange-dark:#dd6512;
-    --orange-tint:#fff1e5;
-    --orange-tint-text:#b34d0a;
-    --border:#e7e2d5;
-    --border-soft:#eceff5;
-  }
-  /* ChaloPrep responsive logo */
-.brand-logo {
-  width: clamp(38px, 5vw, 52px);
-  height: clamp(38px, 5vw, 52px);
-  object-fit: contain;
-  object-position: center;
-  display: block;
-  flex-shrink: 0;
-}
+from pathlib import Path
 
-.brand-text {
-  min-width: 0;
-}
+src = Path("/mnt/data/Pasted text(8).txt")
+text = src.read_text(encoding="utf-8")
 
-.brand-title {
-  font-size: clamp(0.9rem, 2vw, 1rem);
-  line-height: 1.2;
-  font-weight: 800;
-}
+start = text.index("function buildSetQuestions()")
+end = text.index("function getEditor(id)")
 
-.brand-subtitle {
-  font-size: clamp(0.65rem, 1.5vw, 0.75rem);
-  line-height: 1.2;
-  color: #cbd5e1;
-}
-  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
-  .card{background:#fff;border:1px solid var(--border-soft);border-radius:16px;box-shadow:0 6px 20px rgba(16,31,61,.05)}
-  .input{width:100%;border:1px solid #dfe1ea;border-radius:10px;padding:.7rem .8rem;outline:none;background:#fff;color:var(--ink);transition:border-color .15s, box-shadow .15s}
-  .input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(244,118,31,.14)}
-  .label{font-size:.82rem;font-weight:700;color:var(--body-text);margin-bottom:.35rem;display:block;letter-spacing:.01em}
-  .btn{border-radius:10px;padding:.7rem 1rem;font-weight:700;transition:background-color .15s, transform .1s}
-  .btn:active{transform:translateY(1px)}
-  .primary{background:var(--orange);color:#fff;box-shadow:0 4px 14px rgba(244,118,31,.28)}.primary:hover{background:var(--orange-dark)}
-  .muted{background:var(--cream-2);color:var(--navy-900)}.muted:hover{background:#eae5d7}
-  .danger{background:#fee2e2;color:#991b1b}
-  .section-title{font-size:1rem;font-weight:800;color:var(--ink);letter-spacing:.01em}
-  .required:after{content:" *";color:var(--orange-dark)}
-  .hidden{display:none}
-  .pill{display:inline-flex;align-items:center;padding:.35rem .65rem;border-radius:999px;background:var(--orange-tint);color:var(--orange-tint-text);font-size:.75rem;font-weight:700;letter-spacing:.02em}
-  .choice{border:1px solid #e3e6ee;border-radius:14px;padding:1rem;text-align:left;cursor:pointer;background:#fff;transition:border-color .15s, background-color .15s, box-shadow .15s}
-  .choice:hover{border-color:var(--orange);background:var(--orange-tint)}
-  .choice.active{border-color:var(--orange);background:var(--orange-tint);box-shadow:0 0 0 2px rgba(244,118,31,.15)}
-  .editor{min-height:150px;border:1px solid #dfe1ea;border-radius:10px;padding:.8rem;outline:none;color:var(--ink)}
-  .editor:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(244,118,31,.14)}
-  ::selection{background:rgba(244,118,31,.22)}
-
-  /* Analytics */
-  .navtab{
-    border:1px solid transparent;
-    border-radius:10px;
-    padding:.65rem .9rem;
-    font-weight:800;
-    color:#243B64;
-    background:transparent;
-    cursor:pointer;
-  }
-  
-  .navtab:hover{
-    background:#E8EEF8;
-  }
-  
-  .navtab.active{
-    background:#E3EAF5;
-    color:#0B2A5B;
-    border-color:#C9D5E8;
-  }
-  
-  .analytics-stat{
-    font-size:1.8rem;
-    font-weight:900;
-    letter-spacing:-.03em;
-  }
-  
-  .analytics-grid{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:1.25rem;
-  }
-  
-  @media(max-width:800px){
-    .analytics-grid{
-      grid-template-columns:1fr;
-    }
-  }
-  
-  .analytics-chart{
-    height:320px;
-    position:relative;
-}
-  
-  .analytics-bar{
-    height:8px;
-    background:#edf1f6;
-    border-radius:999px;
-    overflow:hidden;
-  }
-  
-  .analytics-bar > div{
-    height:100%;
-    background:#0B2A5B;
-    border-radius:999px;
-  }
-
-  .multi-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: .35rem;
-  padding: .35rem .6rem;
-  border-radius: 999px;
-  background: #E3EAF5;
-  color: #0B2A5B;
-  font-size: .75rem;
-  font-weight: 700;
-}
-
-.multi-chip button {
-  border: none;
-  background: transparent;
-  color: #0B2A5B;
-  cursor: pointer;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.multi-option {
-  display: flex;
-  align-items: center;
-  gap: .65rem;
-  padding: .65rem .75rem;
-  cursor: pointer;
-}
-
-.multi-option:hover {
-  background: #F1F5F9;
-}
-
-.multi-option input {
-  accent-color: #0B2A5B;
-}
-
-.multi-empty {
-  padding: .75rem;
-  color: #64748B;
-  font-size: .85rem;
-}
-</style>
-</head>
-<body>
-<div id="app" class="min-h-screen">
-  <header style="background:#F1F5F9" class="text-white border-b border-white/5">
-    <div class="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <img src="chaloprep-logo.png.png"
-        alt="ChaloPrep Logo"
-        class="brand-logo">
-        <div>
-          <div class="font-extrabold tracking-tight text-[1.05rem] text-[#082567]">ChaloPrep</div>
-          <div class="text-xs" style="color:#F26B1D">Question Manager</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-3">
-        <span
-          id="userEmail"
-          class="text-sm font-medium"
-          style="color:#243B64">
-        </span>
-
-        <button id="tabAnalytics" class="navtab" type="button">
-          Analytics
-        </button>
-        
-        <button
-          id="logout"
-          class="btn bg-[#E3EAF5] text-[#F97316] hover:bg-[#D7E1F0] border border-[#C9D5E8]">
-          Logout
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main class="max-w-7xl mx-auto px-5 py-8">
-    <div id="authState" class="card p-6 mb-6" style="color:var(--body-text)">Checking authentication…</div>
-
-    <div id="dashboard" class="hidden">
-      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-        <div>
-          <div class="text-xs font-bold tracking-widest uppercase mb-1" style="color:var(--orange-dark)">Admin · Content Ops</div>
-          <h1 class="text-3xl font-black tracking-tight" style="color:var(--ink)">Question Manager</h1>
-          <p class="mt-1" style="color:var(--body-text)">Create CAT questions using the approved content structures.</p>
-        </div>
-        <button id="resetAll" class="btn muted">Reset form</button>
-      </div>
-
-      <div id="stepChooser" class="card p-6 mb-6">
-        <div class="section-title mb-4">1. Select section</div>
-        <div class="grid md:grid-cols-3 gap-4">
-          <button class="choice" data-section="QA"><div class="font-extrabold">QA</div><div class="text-sm text-slate-500 mt-1">Quantitative Aptitude</div></button>
-          <button class="choice" data-section="DILR"><div class="font-extrabold">DILR</div><div class="text-sm text-slate-500 mt-1">Data Interpretation & Logical Reasoning</div></button>
-          <button class="choice" data-section="VARC"><div class="font-extrabold">VARC</div><div class="text-sm text-slate-500 mt-1">Verbal Ability & Reading Comprehension</div></button>
-        </div>
-
-        <div id="structureWrap" class="hidden mt-6">
-          <div class="section-title mb-4">2. Select content structure</div>
-          <div id="structureChoices" class="grid md:grid-cols-3 gap-4"></div>
-        </div>
-      </div>
-
-      <form id="questionForm" class="hidden space-y-6">
-        <input type="hidden" id="contentStructure">
-        <input type="hidden" id="section">
-
-        <section class="card p-6">
-          <div class="section-title mb-5">Basic identification</div>
-          <div class="grid md:grid-cols-4 gap-4">
-            <div><label class="label">Question ID</label><input id="questionIdPreview" class="input bg-slate-50" readonly value="Will be generated on save"></div>
-            <div><label class="label">Exam</label><input class="input bg-slate-50" value="CAT" readonly></div>
-            <div><label class="label required">Year</label><select id="year" class="input" required><option value="">Select</option></select></div>
-            <div><label class="label required">Slot</label><select id="slot" class="input" required><option value="">Select</option><option value="1">Slot 1</option><option value="2">Slot 2</option><option value="3">Slot 3</option></select></div>
-          </div>
-        </section>
-
-        <section id="setMeta" class="card p-6 hidden">
-          <div class="section-title mb-5">Set information</div>
-          <div class="grid md:grid-cols-3 gap-4">
-            <div><label class="label required">Number of questions</label><input id="setQuestionCount" type="number" min="1" max="20" class="input"></div>
-            <div><label class="label">Set title</label><input id="setTitle" class="input"></div>
-            <div><label class="label">Set type</label><input id="setType" class="input"></div>
-          </div>
-          <div class="mt-4"><label class="label">Set instructions</label><textarea id="setInstructions" class="input min-h-24"></textarea></div>
-        </section>
-
-        <section id="rcMeta" class="card p-6 hidden">
-          <div class="section-title mb-5">RC passage</div>
-          <div class="grid md:grid-cols-3 gap-4">
-            <div><label class="label">Passage title</label><input id="passageTitle" class="input"></div>
-            <div><label class="label required">Passage domain</label><input id="passageDomain" class="input"></div>
-            <div><label class="label">Passage complexity</label><input id="passageComplexity" class="input"></div>
-          </div>
-          <div class="mt-4"><label class="label required">Passage</label><div id="passageEditor" class="editor" contenteditable="true"></div></div>
-          <div class="mt-4 text-sm text-slate-500">Word count: <span id="wordCount">0</span></div>
-        </section>
-
-        <section id="questionCore" class="card p-6">
-          <div class="section-title mb-5">Question</div>
-          <div class="mb-5">
-            <label class="label required">Answer type</label>
-            <div class="flex gap-3">
-              <label class="flex items-center gap-2"><input type="radio" name="answerType" value="MCQ" checked> MCQ</label>
-              <label class="flex items-center gap-2"><input type="radio" name="answerType" value="TITA"> TITA</label>
-            </div>
-          </div>
-          <label class="label required">Question text</label>
-          <div id="questionEditor" class="editor" contenteditable="true"></div>
-
-          <div id="optionsWrap" class="grid md:grid-cols-2 gap-4 mt-5">
-            <div><label class="label required">Option A</label><input id="optA" class="input"></div>
-            <div><label class="label required">Option B</label><input id="optB" class="input"></div>
-            <div><label class="label required">Option C</label><input id="optC" class="input"></div>
-            <div><label class="label required">Option D</label><input id="optD" class="input"></div>
-          </div>
-          <div class="mt-5">
-            <label class="label required">Correct answer</label>
-            <input id="correctAnswer" class="input" placeholder="A / B / C / D">
-          </div>
-        </section>
-
-        <section id="visualWrap" class="card p-6 hidden">
-          <div class="flex items-center justify-between mb-5"><div class="section-title">Visual</div><span class="pill">1 visual • max 5 MB</span></div>
-          <div class="grid md:grid-cols-2 gap-4">
-            <div><label class="label required">Visual type</label><select id="visualType" class="input"><option value="">Select</option><option>Diagram</option><option>Graph</option><option>Table</option><option>Figure</option><option>Geometry Figure</option><option>Chart</option><option>Network</option><option>Other</option></select></div>
-            <div><label class="label required">File</label><input id="visualFile" type="file" accept="image/png,image/jpeg,image/webp" class="input"></div>
-          </div>
-          <div class="mt-4"><label class="label">Caption / description</label><input id="visualCaption" class="input"></div>
-          <p id="visualError" class="text-sm text-red-600 mt-2"></p>
-        </section>
-
-        <section id="taxonomyWrap" class="card p-6">
-          <div class="section-title mb-5">Taxonomy</div>
-          <div class="grid md:grid-cols-3 gap-4">
-            <div><label class="label required">Topic</label><select id="topic" class="input" required><option value="">Select topic</option></select></div>
-            <div><label class="label required">Sub-topic</label><select id="subtopic" class="input" required disabled><option value="">Select sub-topic</option></select></div>
-            <div><label class="label required">Concept</label><select id="concept" class="input" required disabled><option value="">Select concept</option></select></div>
-          </div>
-          <div class="mt-5 p-4 rounded-xl" style="background:var(--orange-tint);border:1px solid #f7dcc2">
-            <div class="text-sm font-bold" style="color:var(--orange-tint-text)">Tags</div>
-            <div id="derivedTags" class="text-sm mt-1" style="color:#c05f16">Tags will be derived from the selected taxonomy when the tag list is populated.</div>
-          </div>
-        </section>
-
-        <section class="card p-6">
-          <div class="section-title mb-5">Diagnostics</div>
-          <div class="grid md:grid-cols-4 gap-4">
-            <div><label class="label required">Difficulty</label><select id="difficulty" class="input" required><option value="">Select</option><option>Easy</option><option>Moderate</option><option>Difficult</option></select></div>
-            <div><label class="label required">Attempt worthiness</label><select id="attemptWorthiness" class="input" required><option value="">Select</option><option>Must Attempt</option><option>Should Attempt</option><option>Conditional</option><option>Skip</option></select></div>
-            <div><label class="label required">Minimum time (sec)</label><input id="minTime" type="number" min="1" class="input" required></div>
-            <div><label class="label required">Target time (sec)</label><input id="targetTime" type="number" min="1" class="input" required></div>
-          </div>
-          <div class="grid md:grid-cols-3 gap-4 mt-4">
-            <div><label class="label required">Maximum time (sec)</label><input id="maxTime" type="number" min="1" class="input" required></div>
-            <div>
-  <label class="label">
-    Skills <span class="text-slate-400">(max 3)</span>
-  </label>
-
-  <div id="skillsMultiSelect" class="relative">
-    <button
-      type="button"
-      id="skillsMultiButton"
-      class="input text-left flex items-center justify-between"
-    >
-      <span id="skillsSelectedText">Select skills</span>
-      <span>▼</span>
-    </button>
-
-    <div
-      id="skillsDropdown"
-      class="hidden absolute z-50 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-y-auto"
-    >
-    </div>
-  </div>
-
-  <div
-    id="selectedSkills"
-    class="flex flex-wrap gap-2 mt-2"
-  ></div>
-</div>
-
-
-<div>
-  <label class="label">
-    Trap type
-  </label>
-
-  <div id="trapsMultiSelect" class="relative">
-
-    <button
-      type="button"
-      id="trapsMultiButton"
-      class="input text-left flex items-center justify-between"
-    >
-      <span id="trapsSelectedText">Select trap types</span>
-      <span>▼</span>
-    </button>
-
-    <div
-      id="trapsDropdown"
-      class="hidden absolute z-50 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-y-auto"
-    >
-    </div>
-
-  </div>
-
-  <div
-    id="selectedTraps"
-    class="flex flex-wrap gap-2 mt-2"
-  ></div>
-</div>
-          </div>
-          <p id="diagError" class="text-sm text-red-600 mt-3"></p>
-        </section>
-
-        <section id="solutionWrap" class="card p-6">
-          <div class="section-title mb-5">Solution</div>
-          <div><label class="label required">Primary solution</label><div id="primarySolution" class="editor" contenteditable="true"></div></div>
-          <div class="mt-4"><label class="label">Alternate solution</label><div id="alternateSolution" class="editor" contenteditable="true"></div></div>
-          <div class="grid md:grid-cols-2 gap-4 mt-4">
-            <div><label class="label">Key insight</label><textarea id="keyInsight" class="input min-h-24"></textarea></div>
-            <div><label class="label">Shortcut</label><textarea id="shortcut" class="input min-h-24"></textarea></div>
-            <div><label class="label">Common mistake</label><textarea id="commonMistake" class="input min-h-24"></textarea></div>
-            <div><label class="label required">Solution approach</label><textarea id="solutionApproach" class="input min-h-24"></textarea></div>
-          </div>
-        </section>
-
-        <section class="card p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div id="saveMessage" class="text-sm text-slate-500"></div>
-          <button class="btn primary px-7" type="submit">Save Question</button>
-        </section>
-      </form>
-    </div>
-    <!-- ANALYTICS VIEW -->
-<div id="analyticsView" class="hidden">
-
-  <!-- Filters -->
-  <section class="card p-6 mb-6">
-
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
-      <div>
-        <div class="section-title">Question Bank Analytics</div>
-        <div class="text-sm mt-1" style="color:var(--body-text)">
-          Live statistics from the ChaloPrep question bank.
-        </div>
-      </div>
-
-      <button id="refreshAnalytics"
-              type="button"
-              class="btn primary">
-        Refresh
-      </button>
-    </div>
-
-    <div class="grid sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-
-      <div>
-        <label class="label">Section</label>
-        <select id="aSection" class="input">
-          <option value="">All Sections</option>
-          <option value="QA">QA</option>
-          <option value="DILR">DILR</option>
-          <option value="VARC">VARC</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="label">Year</label>
-        <select id="aYear" class="input">
-          <option value="">All Years</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="label">Slot</label>
-        <select id="aSlot" class="input">
-          <option value="">All Slots</option>
-          <option value="1">Slot 1</option>
-          <option value="2">Slot 2</option>
-          <option value="3">Slot 3</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="label">Structure</label>
-        <select id="aStructure" class="input">
-          <option value="">All Structures</option>
-          <option value="standalone">Standalone</option>
-          <option value="standalone_visual">Standalone + Visual</option>
-          <option value="set_question">DILR Set Question</option>
-          <option value="va_standalone">VA Standalone</option>
-          <option value="rc_question">RC Question</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="label">Topic</label>
-        <select id="aTopic" class="input">
-          <option value="">All Topics</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="label">Difficulty</label>
-        <select id="aDifficulty" class="input">
-          <option value="">All Difficulty</option>
-          <option value="Easy">Easy</option>
-          <option value="Moderate">Moderate</option>
-          <option value="Difficult">Difficult</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="label">Source</label>
-        <select id="aSource" class="input">
-          <option value="">All Sources</option>
-          <option value="PYQ">PYQ</option>
-        </select>
-      </div>
-
-    </div>
-  </section>
-
-
-  <!-- Status -->
-  <div id="analyticsStatus"
-       class="text-sm mb-4"
-       style="color:var(--body-text)">
-    Loading analytics…
-  </div>
-
-
-  <!-- KPI CARDS -->
-  <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-
-    <div class="card p-5">
-      <div class="text-xs font-bold" style="color:var(--body-text)">
-        Total Questions
-      </div>
-      <div id="aTotal"
-           class="analytics-stat"
-           style="color:var(--navy-900)">
-        0
-      </div>
-    </div>
-
-    <div class="card p-5">
-      <div class="text-xs font-bold" style="color:var(--body-text)">
-        QA
-      </div>
-      <div id="aQA" class="analytics-stat">0</div>
-    </div>
-
-    <div class="card p-5">
-      <div class="text-xs font-bold" style="color:var(--body-text)">
-        DILR
-      </div>
-      <div id="aDILR" class="analytics-stat">0</div>
-    </div>
-
-    <div class="card p-5">
-      <div class="text-xs font-bold" style="color:var(--body-text)">
-        VARC
-      </div>
-      <div id="aVARC" class="analytics-stat">0</div>
-    </div>
-
-  </section>
-
-
-  <!-- CHARTS -->
-  <section class="analytics-grid mb-6">
-
-    <div class="card p-5 analytics-chart">
-      <div class="font-extrabold mb-3">
-        Questions by Year
-      </div>
-      <canvas id="aYearChart"></canvas>
-    </div>
-
-    <div class="card p-5 analytics-chart">
-      <div class="font-extrabold mb-3">
-        Section Distribution
-      </div>
-      <canvas id="aSectionChart"></canvas>
-    </div>
-
-    <div class="card p-5 analytics-chart">
-      <div class="font-extrabold mb-3">
-        Difficulty Distribution
-      </div>
-      <canvas id="aDifficultyChart"></canvas>
-    </div>
-
-    <div class="card p-5 analytics-chart">
-      <div class="font-extrabold mb-3">
-        Content Structure
-      </div>
-      <canvas id="aStructureChart"></canvas>
-    </div>
-
-  </section>
-
-
-  <!-- COVERAGE -->
-  <section class="grid lg:grid-cols-2 gap-6">
-
-    <div class="card p-6">
-      <div class="section-title mb-4">
-        Topic Coverage
-      </div>
-
-      <div id="aTopicTable">
-        <div class="text-sm" style="color:var(--body-text)">
-          No data yet.
-        </div>
-      </div>
-    </div>
-
-
-    <div class="card p-6">
-      <div class="section-title mb-4">
-        Question Bank Checks
-      </div>
-
-      <div id="aChecks">
-        <div class="text-sm" style="color:var(--body-text)">
-          No data yet.
-        </div>
-      </div>
-    </div>
-
-  </section>
-
-</div>
-  </main>
-
-  <footer style="background:var(--navy-950)" class="mt-10">
-    <div class="max-w-7xl mx-auto px-5 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs" style="color:#8994b3">
-      <span>ChaloPrep · Internal content tooling</span>
-      <span>Built for <strong style="color:#c3cbe0">CAT</strong> &nbsp;·&nbsp; <strong style="color:#c3cbe0">AI-personalised</strong> question data</span>
-    </div>
-  </footer>
-</div>
-
-<script>
-const SUPABASE_URL = 'https://yhufgyeeqjdnmilnihbt.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodWZneWVlcWpkbm1pbG5paGJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0Njk3ODcsImV4cCI6MjA5NDA0NTc4N30.eSigz2_Ll3EGpw-MLsn2toAa4-2xrPwdmgE3Xc3roHY';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-const state = {
-  section: null,
-  structure: null,
-  topics: [],
-  subtopics: [],
-  concepts: [],
-
-  allSkills: [],
-  allTraps: [],
-
-  selectedSkills: [],
-  selectedTraps: []
-};
-
-const $ = id => document.getElementById(id);
-const structures = {
-  QA: [
-    ['standalone','Standalone'],
-    ['standalone_visual','Standalone + Visual']
-  ],
-  DILR: [
-    ['standalone','Standalone'],
-    ['standalone_visual','Standalone + Visual'],
-    ['set_question','Set']
-  ],
-  VARC: [
-    ['va_standalone','VA Standalone'],
-    ['rc_question','RC Passage']
-  ]
-};
-
-function setYears(){ for(let y=2025;y>=2020;y--){ $('year').insertAdjacentHTML('beforeend', `<option value="${y}">${y}</option>`); } }
-
-async function init(){
-  setYears();
-  const {data:{session}} = await sb.auth.getSession();
-  if(!session){ $('authState').textContent='No active session. Please log in through the ChaloPrep login page.'; return; }
-  $('authState').classList.add('hidden'); $('dashboard').classList.remove('hidden');
-  $('userEmail').textContent = session.user.email || '';
-  await loadAuxiliary();
-}
+new_group_ui = r"""
 /* =========================================================
-   SKILLS + TRAP TYPES
+   DILR SET + RC GROUP QUESTION BUILDERS
+   Each child question is stored as its own row in `questions`
+   and linked to the parent through dilr_set_id / rc_passage_id.
    ========================================================= */
 
-async function loadAuxiliary(){
+state.setQuestions = [];
+state.rcQuestions = [];
 
-  const [skillsResult, trapsResult] = await Promise.all([
+function childTopicOptions() {
+  return '<option value="">Select topic</option>' +
+    (state.topics || []).map(t =>
+      `<option value="${t.id}">${escapeHtml(t.name)}</option>`
+    ).join('');
+}
 
-    sb
-      .from('skills')
-      .select('id,name,section')
-      .order('name'),
+function childTaxonomyBlock(kind, index) {
+  const prefix = `${kind}-${index}`;
+  return `
+    <div class="mt-5 pt-5 border-t border-slate-200">
+      <div class="font-bold mb-4">Taxonomy & diagnostics</div>
 
-    sb
-      .from('trap_types')
-      .select('id,name,section')
-      .order('name')
+      <div class="grid md:grid-cols-3 gap-3">
+        <div>
+          <label class="label required">Topic</label>
+          <select class="input child-topic" data-kind="${kind}" data-index="${index}" required>
+            ${childTopicOptions()}
+          </select>
+        </div>
+        <div>
+          <label class="label required">Sub-topic</label>
+          <select id="${prefix}-subtopic" class="input child-subtopic" data-kind="${kind}" data-index="${index}" required disabled>
+            <option value="">Select sub-topic</option>
+          </select>
+        </div>
+        <div>
+          <label class="label required">Concept</label>
+          <select id="${prefix}-concept" class="input child-concept" data-kind="${kind}" data-index="${index}" required disabled>
+            <option value="">Select concept</option>
+          </select>
+        </div>
+      </div>
 
-  ]);
+      <div class="grid md:grid-cols-3 gap-3 mt-3">
+        <div>
+          <label class="label required">Difficulty</label>
+          <select class="input child-difficulty" data-kind="${kind}" data-index="${index}" required>
+            <option value="">Select</option>
+            <option>Easy</option>
+            <option>Moderate</option>
+            <option>Difficult</option>
+          </select>
+        </div>
+        <div>
+          <label class="label required">Attempt worthiness</label>
+          <select class="input child-attempt" data-kind="${kind}" data-index="${index}" required>
+            <option value="">Select</option>
+            <option>Must Attempt</option>
+            <option>Should Attempt</option>
+            <option>Conditional</option>
+            <option>Skip</option>
+          </select>
+        </div>
+        <div>
+          <label class="label required">Minimum / Target / Maximum (sec)</label>
+          <div class="grid grid-cols-3 gap-2">
+            <input class="input child-min" data-kind="${kind}" data-index="${index}" type="number" min="1" placeholder="Min" required>
+            <input class="input child-target" data-kind="${kind}" data-index="${index}" type="number" min="1" placeholder="Target" required>
+            <input class="input child-max" data-kind="${kind}" data-index="${index}" type="number" min="1" placeholder="Max" required>
+          </div>
+        </div>
+      </div>
 
+      <div class="grid md:grid-cols-2 gap-4 mt-4">
+        <div>
+          <label class="label">Skills <span class="text-slate-400">(max 3)</span></label>
+          <div class="relative">
+            <button type="button" class="input text-left flex items-center justify-between child-skills-button"
+                    data-kind="${kind}" data-index="${index}">
+              <span class="child-skills-text" data-kind="${kind}" data-index="${index}">Select skills</span>
+              <span>▼</span>
+            </button>
+            <div class="hidden absolute z-[60] mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-56 overflow-y-auto child-skills-dropdown"
+                 data-kind="${kind}" data-index="${index}"></div>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-2 child-selected-skills" data-kind="${kind}" data-index="${index}"></div>
+        </div>
 
-  if(skillsResult.error){
+        <div>
+          <label class="label">Trap type</label>
+          <div class="relative">
+            <button type="button" class="input text-left flex items-center justify-between child-traps-button"
+                    data-kind="${kind}" data-index="${index}">
+              <span class="child-traps-text" data-kind="${kind}" data-index="${index}">Select trap types</span>
+              <span>▼</span>
+            </button>
+            <div class="hidden absolute z-[60] mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-56 overflow-y-auto child-traps-dropdown"
+                 data-kind="${kind}" data-index="${index}"></div>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-2 child-selected-traps" data-kind="${kind}" data-index="${index}"></div>
+        </div>
+      </div>
+    </div>
 
-    console.error(
-      'Skills loading error:',
-      skillsResult.error
-    );
+    <div class="mt-5">
+      <label class="label required">Primary solution</label>
+      <textarea class="input min-h-24 child-primary-solution" data-kind="${kind}" data-index="${index}" required></textarea>
+    </div>
 
+    <div class="grid md:grid-cols-2 gap-3 mt-3">
+      <div>
+        <label class="label">Alternate solution</label>
+        <textarea class="input min-h-20 child-alternate-solution" data-kind="${kind}" data-index="${index}"></textarea>
+      </div>
+      <div>
+        <label class="label">Key insight</label>
+        <textarea class="input min-h-20 child-key-insight" data-kind="${kind}" data-index="${index}"></textarea>
+      </div>
+      <div>
+        <label class="label">Shortcut</label>
+        <textarea class="input min-h-20 child-shortcut" data-kind="${kind}" data-index="${index}"></textarea>
+      </div>
+      <div>
+        <label class="label">Common mistake</label>
+        <textarea class="input min-h-20 child-common-mistake" data-kind="${kind}" data-index="${index}"></textarea>
+      </div>
+    </div>
+  `;
+}
+
+function childQuestionCard(kind, index, label) {
+  return `
+    <div class="border border-slate-200 rounded-xl p-5">
+      <div class="font-bold text-lg mb-4">${label} ${index + 1}</div>
+
+      <div class="mb-4">
+        <label class="label required">Question text</label>
+        <textarea class="input min-h-24 child-q-text" data-kind="${kind}" data-index="${index}"
+                  placeholder="Enter question text" required></textarea>
+      </div>
+
+      <div class="mb-4">
+        <label class="label required">Answer type</label>
+        <select class="input child-answer-type" data-kind="${kind}" data-index="${index}" required>
+          <option value="MCQ">MCQ</option>
+          <option value="TITA">TITA</option>
+        </select>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-3 child-options" data-kind="${kind}" data-index="${index}">
+        <div><label class="label required">Option A</label><input class="input child-opt" data-kind="${kind}" data-index="${index}" data-opt="A" required></div>
+        <div><label class="label required">Option B</label><input class="input child-opt" data-kind="${kind}" data-index="${index}" data-opt="B" required></div>
+        <div><label class="label required">Option C</label><input class="input child-opt" data-kind="${kind}" data-index="${index}" data-opt="C" required></div>
+        <div><label class="label required">Option D</label><input class="input child-opt" data-kind="${kind}" data-index="${index}" data-opt="D" required></div>
+      </div>
+
+      <div class="mt-4">
+        <label class="label required">Correct answer</label>
+        <input class="input child-answer" data-kind="${kind}" data-index="${index}" placeholder="A / B / C / D" required>
+      </div>
+
+      ${childTaxonomyBlock(kind, index)}
+    </div>
+  `;
+}
+
+function childStateArray(kind) {
+  return kind === 'set' ? state.setQuestions : state.rcQuestions;
+}
+
+function initChildState(kind, count) {
+  const arr = childStateArray(kind);
+  arr.length = count;
+  for (let i = 0; i < count; i++) {
+    arr[i] = { skills: [], traps: [] };
   }
-
-
-  if(trapsResult.error){
-
-    console.error(
-      'Trap types loading error:',
-      trapsResult.error
-    );
-
-  }
-
-
-  state.allSkills =
-    skillsResult.data || [];
-
-  state.allTraps =
-    trapsResult.data || [];
-
 }
 
-function loadSectionSkillsAndTraps() {
-
-  const section = state.section;
-
-  state.selectedSkills = [];
-  state.selectedTraps = [];
-
-  if (!section) {
-    renderSkillsDropdown();
-    renderTrapsDropdown();
-    return;
-  }
-
-  renderSkillsDropdown();
-  renderTrapsDropdown();
-}
-
-function getSectionSkills() {
-
-  return (state.allSkills || [])
-    .filter(skill => skill.section === state.section)
-    .sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
-}
-
-
-function getSectionTraps() {
-
-  return (state.allTraps || [])
-    .filter(trap => trap.section === state.section)
-    .sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
-}
-
-function renderSkillsDropdown() {
-
-  const dropdown = $('skillsDropdown');
-
-  if (!dropdown) return;
+function renderChildSkills(kind, index) {
+  const arr = childStateArray(kind);
+  const selected = arr[index]?.skills || [];
+  const dropdown = document.querySelector(`.child-skills-dropdown[data-kind="${kind}"][data-index="${index}"]`);
+  const textEl = document.querySelector(`.child-skills-text[data-kind="${kind}"][data-index="${index}"]`);
+  const chips = document.querySelector(`.child-selected-skills[data-kind="${kind}"][data-index="${index}"]`);
+  if (!dropdown || !textEl || !chips) return;
 
   const skills = getSectionSkills();
+  dropdown.innerHTML = skills.length
+    ? skills.map(skill => `
+        <label class="multi-option">
+          <input type="checkbox" ${selected.includes(Number(skill.id)) ? 'checked' : ''}
+                 onchange="toggleChildSkill('${kind}', ${index}, ${Number(skill.id)})">
+          <span>${escapeHtml(skill.name)}</span>
+        </label>
+      `).join('')
+    : '<div class="multi-empty">No skills available for this section.</div>';
 
-  if (!skills.length) {
+  textEl.textContent = selected.length
+    ? `${selected.length} skill${selected.length > 1 ? 's' : ''} selected`
+    : 'Select skills';
 
-    dropdown.innerHTML =
-      '<div class="multi-empty">No skills available for this section.</div>';
-
-    $('skillsSelectedText').textContent =
-      'No skills available';
-
-    return;
-  }
-
-  dropdown.innerHTML = skills.map(skill => {
-
-    const checked =
-      state.selectedSkills.includes(Number(skill.id));
-
-    return `
-      <label class="multi-option">
-
-        <input
-          type="checkbox"
-          value="${skill.id}"
-          ${checked ? 'checked' : ''}
-          onchange="toggleSkill(${skill.id})"
-        >
-
-        <span>
-          ${escapeHtml(skill.name)}
-        </span>
-
-      </label>
-    `;
-
-  }).join('');
-
-  updateSelectedSkillsUI();
+  chips.innerHTML = (state.allSkills || [])
+    .filter(skill => selected.includes(Number(skill.id)))
+    .map(skill => `
+      <span class="multi-chip">
+        ${escapeHtml(skill.name)}
+        <button type="button" onclick="toggleChildSkill('${kind}', ${index}, ${Number(skill.id)})">×</button>
+      </span>
+    `).join('');
 }
 
-function renderTrapsDropdown() {
-
-  const dropdown = $('trapsDropdown');
-
-  if (!dropdown) return;
+function renderChildTraps(kind, index) {
+  const arr = childStateArray(kind);
+  const selected = arr[index]?.traps || [];
+  const dropdown = document.querySelector(`.child-traps-dropdown[data-kind="${kind}"][data-index="${index}"]`);
+  const textEl = document.querySelector(`.child-traps-text[data-kind="${kind}"][data-index="${index}"]`);
+  const chips = document.querySelector(`.child-selected-traps[data-kind="${kind}"][data-index="${index}"]`);
+  if (!dropdown || !textEl || !chips) return;
 
   const traps = getSectionTraps();
+  dropdown.innerHTML = traps.length
+    ? traps.map(trap => `
+        <label class="multi-option">
+          <input type="checkbox" ${selected.includes(Number(trap.id)) ? 'checked' : ''}
+                 onchange="toggleChildTrap('${kind}', ${index}, ${Number(trap.id)})">
+          <span>${escapeHtml(trap.name)}</span>
+        </label>
+      `).join('')
+    : '<div class="multi-empty">No trap types available for this section.</div>';
 
-  if (!traps.length) {
+  textEl.textContent = selected.length
+    ? `${selected.length} trap${selected.length > 1 ? 's' : ''} selected`
+    : 'Select trap types';
 
-    dropdown.innerHTML =
-      '<div class="multi-empty">No trap types available for this section.</div>';
-
-    $('trapsSelectedText').textContent =
-      'No trap types available';
-
-    return;
-  }
-
-  dropdown.innerHTML = traps.map(trap => {
-
-    const checked =
-      state.selectedTraps.includes(Number(trap.id));
-
-    return `
-      <label class="multi-option">
-
-        <input
-          type="checkbox"
-          value="${trap.id}"
-          ${checked ? 'checked' : ''}
-          onchange="toggleTrap(${trap.id})"
-        >
-
-        <span>
-          ${escapeHtml(trap.name)}
-        </span>
-
-      </label>
-    `;
-
-  }).join('');
-
-  updateSelectedTrapsUI();
+  chips.innerHTML = (state.allTraps || [])
+    .filter(trap => selected.includes(Number(trap.id)))
+    .map(trap => `
+      <span class="multi-chip">
+        ${escapeHtml(trap.name)}
+        <button type="button" onclick="toggleChildTrap('${kind}', ${index}, ${Number(trap.id)})">×</button>
+      </span>
+    `).join('');
 }
 
-function toggleSkill(skillId) {
-
+function toggleChildSkill(kind, index, skillId) {
+  const arr = childStateArray(kind);
+  const item = arr[index];
+  if (!item) return;
   skillId = Number(skillId);
 
-  const index =
-    state.selectedSkills.indexOf(skillId);
-
-  if (index !== -1) {
-
-    state.selectedSkills.splice(index, 1);
-
+  const pos = item.skills.indexOf(skillId);
+  if (pos >= 0) {
+    item.skills.splice(pos, 1);
   } else {
-
-    if (state.selectedSkills.length >= 3) {
-
-      $('diagError').textContent =
-        'Maximum 3 skills can be selected for a question.';
-
-      renderSkillsDropdown();
-
+    if (item.skills.length >= 3) {
+      $('diagError').textContent = `Question ${index + 1}: maximum 3 skills can be selected.`;
+      renderChildSkills(kind, index);
       return;
     }
-
-    state.selectedSkills.push(skillId);
-
+    item.skills.push(skillId);
   }
 
   $('diagError').textContent = '';
-
-  renderSkillsDropdown();
+  renderChildSkills(kind, index);
 }
 
-function toggleTrap(trapId) {
-
+function toggleChildTrap(kind, index, trapId) {
+  const arr = childStateArray(kind);
+  const item = arr[index];
+  if (!item) return;
   trapId = Number(trapId);
 
-  const index =
-    state.selectedTraps.indexOf(trapId);
+  const pos = item.traps.indexOf(trapId);
+  if (pos >= 0) item.traps.splice(pos, 1);
+  else item.traps.push(trapId);
 
-  if (index !== -1) {
-
-    state.selectedTraps.splice(index, 1);
-
-  } else {
-
-    state.selectedTraps.push(trapId);
-
-  }
-
-  renderTrapsDropdown();
+  renderChildTraps(kind, index);
 }
 
-function updateSelectedSkillsUI() {
-
-  const container =
-    $('selectedSkills');
-
-  const selected =
-    (state.allSkills || [])
-      .filter(skill =>
-        state.selectedSkills.includes(Number(skill.id))
-      );
-
-  $('skillsSelectedText').textContent =
-    selected.length
-      ? `${selected.length} skill${selected.length > 1 ? 's' : ''} selected`
-      : 'Select skills';
-
-  container.innerHTML =
-    selected.map(skill => `
-      <span class="multi-chip">
-
-        ${escapeHtml(skill.name)}
-
-        <button
-          type="button"
-          onclick="toggleSkill(${skill.id})"
-        >
-          ×
-        </button>
-
-      </span>
-    `).join('');
-}
-
-function updateSelectedTrapsUI() {
-
-  const container =
-    $('selectedTraps');
-
-  const selected =
-    (state.allTraps || [])
-      .filter(trap =>
-        state.selectedTraps.includes(Number(trap.id))
-      );
-
-  $('trapsSelectedText').textContent =
-    selected.length
-      ? `${selected.length} trap${selected.length > 1 ? 's' : ''} selected`
-      : 'Select trap types';
-
-  container.innerHTML =
-    selected.map(trap => `
-      <span class="multi-chip">
-
-        ${escapeHtml(trap.name)}
-
-        <button
-          type="button"
-          onclick="toggleTrap(${trap.id})"
-        >
-          ×
-        </button>
-
-      </span>
-    `).join('');
-}
-
-$('skillsMultiButton').addEventListener('click', () => {
-
-  $('skillsDropdown')
-    .classList.toggle('hidden');
-
-  $('trapsDropdown')
-    .classList.add('hidden');
-
-});
-
-
-$('trapsMultiButton').addEventListener('click', () => {
-
-  $('trapsDropdown')
-    .classList.toggle('hidden');
-
-  $('skillsDropdown')
-    .classList.add('hidden');
-
-});
-
-document.addEventListener('click', e => {
-
-  if (!$('skillsMultiSelect').contains(e.target)) {
-
-    $('skillsDropdown')
-      .classList.add('hidden');
-
-  }
-
-  if (!$('trapsMultiSelect').contains(e.target)) {
-
-    $('trapsDropdown')
-      .classList.add('hidden');
-
-  }
-
-});
-
-
-
-
-
-
-
-function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-
-document.querySelectorAll('[data-section]').forEach(btn => {
-  btn.addEventListener('click', async () => {
-
-    const newSection = btn.dataset.section;
-
-    // Update selected section
-    state.section = newSection;
-    $('section').value = newSection;
-
-    loadSectionSkillsAndTraps();
-
-    // Highlight selected section
-    document.querySelectorAll('[data-section]')
-      .forEach(x => x.classList.remove('active'));
-
-    btn.classList.add('active');
-
-    // IMPORTANT:
-    // Clear taxonomy from previously selected section
-    $('topic').value = '';
-
-    $('subtopic').innerHTML =
-      '<option value="">Select sub-topic</option>';
-
-    $('concept').innerHTML =
-      '<option value="">Select concept</option>';
-
-    $('subtopic').disabled = true;
-    $('concept').disabled = true;
-
-    // Clear derived tags
-    $('derivedTags').textContent =
-      'Tags will be derived from the selected taxonomy when the tag list is populated.';
-
-    // Load structures for the selected section
-    $('structureChoices').innerHTML =
-      structures[newSection]
-        .map(([v, l]) => `
-          <button
-            type="button"
-            class="choice"
-            data-structure="${v}"
-          >
-            <div class="font-extrabold">${l}</div>
-            <div class="text-sm text-slate-500 mt-1">
-              ${structureHint(v)}
-            </div>
-          </button>
-        `)
-        .join('');
-
-    $('structureWrap').classList.remove('hidden');
-
-    // Attach structure selection events
-    document.querySelectorAll('[data-structure]')
-      .forEach(b => {
-        b.addEventListener('click', () => {
-          chooseStructure(b.dataset.structure);
-        });
-      });
-
-    // Load topics for the NEW section
-    await loadTopics();
+function renderAllChildMultiSelects(kind) {
+  childStateArray(kind).forEach((_, index) => {
+    renderChildSkills(kind, index);
+    renderChildTraps(kind, index);
   });
-});
-function structureHint(v){
-  return ({standalone:'One independent question',standalone_visual:'One question with one visual',set_question:'Multiple linked questions in one DILR set',va_standalone:'Independent verbal ability question',rc_question:'One passage with linked RC questions'})[v];
-}
-function chooseStructure(v){
-
-  state.structure = v;
-  $('contentStructure').value = v;
-
-  document
-    .querySelectorAll('[data-structure]')
-    .forEach(x =>
-      x.classList.toggle(
-        'active',
-        x.dataset.structure === v
-      )
-    );
-
-  $('questionForm').classList.remove('hidden');
-
-  $('setMeta').classList.toggle(
-    'hidden',
-    v !== 'set_question'
-  );
-
-  $('rcMeta').classList.toggle(
-    'hidden',
-    v !== 'rc_question'
-  );
-
-  $('visualWrap').classList.toggle(
-    'hidden',
-    v !== 'standalone_visual'
-  );
-
-  /*
-   * RC Passage has its OWN question fields.
-   * Therefore the normal Question section must disappear.
-   */
-  $('questionCore').classList.toggle(
-  'hidden',
-  v === 'rc_question' || v === 'set_question'
-);
-
-  if(v === 'set_question'){
-    buildSetQuestions();
-  } else {
-    removeSetQuestions();
-  }
-
-  if(v === 'rc_question'){
-    buildRcQuestions();
-  } else {
-    removeRcQuestions();
-  }
-
-  loadTopics();
-}
-async function loadTopics(){
-  const {data,error}=await sb.from('topics').select('id,name').eq('section',state.section).order('name');
-  state.topics=data||[]; $('topic').innerHTML='<option value="">Select topic</option>'+state.topics.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
-  $('subtopic').innerHTML='<option value="">Select sub-topic</option>'; $('concept').innerHTML='<option value="">Select concept</option>';
-  $('subtopic').disabled=true; $('concept').disabled=true;
-}
-$('topic').addEventListener('change',async e=>{
-  $('concept').innerHTML='<option value="">Select concept</option>'; $('concept').disabled=true;
-  const {data}=await sb.from('subtopics').select('id,name').eq('topic_id',e.target.value).order('name');
-  $('subtopic').innerHTML='<option value="">Select sub-topic</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
-  $('subtopic').disabled=false;
-});
-$('subtopic').addEventListener('change',async e=>{
-  const {data}=await sb.from('concepts').select('id,name').eq('subtopic_id',e.target.value).order('name');
-  $('concept').innerHTML='<option value="">Select concept</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
-  $('concept').disabled=false;
-});
-document.querySelectorAll('input[name="answerType"]').forEach(r=>r.addEventListener('change',()=>updateAnswerType()));
-function updateAnswerType(){
-  const t=document.querySelector('input[name="answerType"]:checked').value;
-  $('optionsWrap').classList.toggle('hidden',t!=='MCQ');
-  $('correctAnswer').placeholder=t==='MCQ'?'A / B / C / D':'Enter answer';
 }
 
-$('visualFile').addEventListener('change',()=>{
-  const f=$('visualFile').files[0]; $('visualError').textContent='';
-  if(!f)return;
-  if(f.size>5*1024*1024){ $('visualError').textContent='Image exceeds the 5 MB limit.'; $('visualFile').value=''; return; }
-  if(!['image/png','image/jpeg','image/webp'].includes(f.type)){ $('visualError').textContent='Only PNG, JPG/JPEG, and WEBP images are allowed.'; $('visualFile').value=''; }
-});
-$('passageEditor').addEventListener('input',()=>{$('wordCount').textContent=($('passageEditor').innerText.trim().match(/\S+/g)||[]).length;});
-function buildSetQuestions(){
-  let old=document.getElementById('setQuestions'); if(old)old.remove();
-  const sec=document.createElement('section'); sec.id='setQuestions'; sec.className='card p-6';
-  sec.innerHTML='<div class="section-title mb-4">Set questions</div><div id="setQuestionList" class="space-y-5"></div>';
-  $('questionCore').after(sec);
-  $('setQuestionCount').addEventListener('input',renderSetQuestions,{once:false}); renderSetQuestions();
-}
-function renderSetQuestions(){
-  const n=Math.min(20,Math.max(0,Number($('setQuestionCount').value)||0)); const list=$('setQuestionList'); if(!list)return;
-  list.innerHTML=Array.from({length:n},(_,i)=>`<div class="border border-slate-200 rounded-xl p-4"><div class="font-bold mb-3">Set Question ${i+1}</div><textarea class="input set-q-text min-h-24" data-index="${i}" placeholder="Question text"></textarea><div class="grid md:grid-cols-2 gap-3 mt-3"><select class="input set-answer-type" data-index="${i}"><option>MCQ</option><option>TITA</option></select><input class="input set-answer" data-index="${i}" placeholder="Correct answer"></div><div class="grid md:grid-cols-3 gap-3 mt-3"><input class="input set-opt" data-index="${i}" data-opt="A" placeholder="Option A"><input class="input set-opt" data-index="${i}" data-opt="B" placeholder="Option B"><input class="input set-opt" data-index="${i}" data-opt="C" placeholder="Option C"></div><input class="input set-opt mt-3" data-index="${i}" data-opt="D" placeholder="Option D"></div>`).join('');
-}
-function removeSetQuestions(){const x=$('setQuestions');if(x)x.remove();}
-function buildRcQuestions(){
-
-  let old = $('rcQuestions');
-
-  if(old){
-    old.remove();
-  }
+function buildSetQuestions() {
+  const old = $('setQuestions');
+  if (old) old.remove();
 
   const sec = document.createElement('section');
-
-  sec.id = 'rcQuestions';
+  sec.id = 'setQuestions';
   sec.className = 'card p-6';
-
   sec.innerHTML = `
-    <div class="section-title mb-5">
-      RC Questions
-    </div>
-
-    <div class="mb-5">
-      <label class="label required">
-        Number of questions
-      </label>
-
-      <input
-        id="rcQuestionCount"
-        type="number"
-        min="1"
-        max="20"
-        class="input md:w-64"
-        placeholder="Enter number of questions"
-      >
-    </div>
-
-    <div
-      id="rcQuestionList"
-      class="space-y-6">
-    </div>
+    <div class="section-title mb-5">Set questions</div>
+    <div id="setQuestionList" class="space-y-6"></div>
   `;
+  $('setMeta').after(sec);
 
-  $('rcMeta').after(sec);
-
-  $('rcQuestionCount')
-    .addEventListener(
-      'input',
-      renderRcQuestions
-    );
+  $('setQuestionCount').oninput = renderSetQuestions;
+  renderSetQuestions();
 }
-function renderSetQuestions(){
 
-  const n = Math.min(
-    20,
-    Math.max(
-      0,
-      Number($('setQuestionCount').value) || 0
-    )
-  );
-
+function renderSetQuestions() {
+  const n = Math.min(20, Math.max(0, Number($('setQuestionCount').value) || 0));
   const list = $('setQuestionList');
+  if (!list) return;
 
-  if(!list) return;
-
-  list.innerHTML = Array.from(
-    { length: n },
-    (_, i) => `
-      <div class="border border-slate-200 rounded-xl p-5">
-
-        <div class="font-bold text-lg mb-4">
-          Set Question ${i + 1}
-        </div>
-
-        <div class="mb-4">
-          <label class="label required">
-            Question text
-          </label>
-
-          <textarea
-            class="input set-q-text min-h-24"
-            data-index="${i}"
-            placeholder="Enter question text"
-          ></textarea>
-        </div>
-
-        <div class="mb-4">
-          <label class="label required">
-            Answer type
-          </label>
-
-          <select
-            class="input set-answer-type"
-            data-index="${i}"
-          >
-            <option value="MCQ">MCQ</option>
-            <option value="TITA">TITA</option>
-          </select>
-        </div>
-
-        <div
-          class="grid md:grid-cols-2 gap-4 set-options"
-          data-index="${i}"
-        >
-
-          <div>
-            <label class="label required">Option A</label>
-            <input
-              class="input set-opt"
-              data-index="${i}"
-              data-opt="A"
-              placeholder="Option A"
-            >
-          </div>
-
-          <div>
-            <label class="label required">Option B</label>
-            <input
-              class="input set-opt"
-              data-index="${i}"
-              data-opt="B"
-              placeholder="Option B"
-            >
-          </div>
-
-          <div>
-            <label class="label required">Option C</label>
-            <input
-              class="input set-opt"
-              data-index="${i}"
-              data-opt="C"
-              placeholder="Option C"
-            >
-          </div>
-
-          <div>
-            <label class="label required">Option D</label>
-            <input
-              class="input set-opt"
-              data-index="${i}"
-              data-opt="D"
-              placeholder="Option D"
-            >
-          </div>
-
-        </div>
-
-        <div class="mt-4">
-
-          <label class="label required">
-            Correct answer
-          </label>
-
-          <input
-            class="input set-answer"
-            data-index="${i}"
-            placeholder="A / B / C / D"
-          >
-
-        </div>
-
-      </div>
-    `
+  initChildState('set', n);
+  list.innerHTML = Array.from({length:n}, (_, i) =>
+    childQuestionCard('set', i, 'Set Question')
   ).join('');
 
-  document
-    .querySelectorAll('.set-answer-type')
-    .forEach(select => {
+  renderAllChildMultiSelects('set');
+}
 
-      select.addEventListener('change', () => {
+function removeSetQuestions() {
+  const x = $('setQuestions');
+  if (x) x.remove();
+  state.setQuestions = [];
+}
 
-        const index = select.dataset.index;
+function buildRcQuestions() {
+  const old = $('rcQuestions');
+  if (old) old.remove();
 
-        const optionWrap =
-          document.querySelector(
-            `.set-options[data-index="${index}"]`
-          );
+  const sec = document.createElement('section');
+  sec.id = 'rcQuestions';
+  sec.className = 'card p-6';
+  sec.innerHTML = `
+    <div class="section-title mb-5">RC Questions</div>
+    <div class="mb-5">
+      <label class="label required">Number of questions</label>
+      <input id="rcQuestionCount" type="number" min="1" max="20"
+             class="input md:w-64" placeholder="Enter number of questions">
+    </div>
+    <div id="rcQuestionList" class="space-y-6"></div>
+  `;
+  $('rcMeta').after(sec);
 
-        if(!optionWrap) return;
+  $('rcQuestionCount').addEventListener('input', renderRcQuestions);
+}
 
-        optionWrap.classList.toggle(
-          'hidden',
-          select.value !== 'MCQ'
-        );
+function renderRcQuestions() {
+  const n = Math.min(20, Math.max(0, Number($('rcQuestionCount')?.value) || 0));
+  const list = $('rcQuestionList');
+  if (!list) return;
 
+  initChildState('rc', n);
+  list.innerHTML = Array.from({length:n}, (_, i) =>
+    childQuestionCard('rc', i, 'RC Question')
+  ).join('');
+
+  renderAllChildMultiSelects('rc');
+}
+
+function removeRcQuestions() {
+  const x = $('rcQuestions');
+  if (x) x.remove();
+  state.rcQuestions = [];
+}
+
+/* Child dropdown controls */
+document.addEventListener('click', e => {
+  const skillButton = e.target.closest('.child-skills-button');
+  const trapButton = e.target.closest('.child-traps-button');
+
+  if (skillButton) {
+    const kind = skillButton.dataset.kind;
+    const index = skillButton.dataset.index;
+    const dropdown = document.querySelector(`.child-skills-dropdown[data-kind="${kind}"][data-index="${index}"]`);
+    document.querySelectorAll('.child-skills-dropdown,.child-traps-dropdown').forEach(x => x.classList.add('hidden'));
+    dropdown?.classList.toggle('hidden');
+    return;
+  }
+
+  if (trapButton) {
+    const kind = trapButton.dataset.kind;
+    const index = trapButton.dataset.index;
+    const dropdown = document.querySelector(`.child-traps-dropdown[data-kind="${kind}"][data-index="${index}"]`);
+    document.querySelectorAll('.child-skills-dropdown,.child-traps-dropdown').forEach(x => x.classList.add('hidden'));
+    dropdown?.classList.toggle('hidden');
+    return;
+  }
+
+  if (!e.target.closest('.child-skills-dropdown,.child-traps-dropdown')) {
+    document.querySelectorAll('.child-skills-dropdown,.child-traps-dropdown').forEach(x => x.classList.add('hidden'));
+  }
+});
+
+/* Child taxonomy cascading selects */
+document.addEventListener('change', async e => {
+  const topicSelect = e.target.closest('.child-topic');
+  if (topicSelect) {
+    const kind = topicSelect.dataset.kind;
+    const index = topicSelect.dataset.index;
+    const sub = document.querySelector(`#${kind}-${index}-subtopic`);
+    const concept = document.querySelector(`#${kind}-${index}-concept`);
+    if (!sub || !concept) return;
+
+    concept.innerHTML = '<option value="">Select concept</option>';
+    concept.disabled = true;
+
+    const {data, error} = await sb.from('subtopics')
+      .select('id,name')
+      .eq('topic_id', topicSelect.value)
+      .order('name');
+
+    if (error) {
+      $('diagError').textContent = error.message;
+      return;
+    }
+
+    sub.innerHTML = '<option value="">Select sub-topic</option>' +
+      (data || []).map(x => `<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
+    sub.disabled = false;
+    return;
+  }
+
+  const subSelect = e.target.closest('.child-subtopic');
+  if (subSelect) {
+    const kind = subSelect.dataset.kind;
+    const index = subSelect.dataset.index;
+    const concept = document.querySelector(`#${kind}-${index}-concept`);
+    if (!concept) return;
+
+    const {data, error} = await sb.from('concepts')
+      .select('id,name')
+      .eq('subtopic_id', subSelect.value)
+      .order('name');
+
+    if (error) {
+      $('diagError').textContent = error.message;
+      return;
+    }
+
+    concept.innerHTML = '<option value="">Select concept</option>' +
+      (data || []).map(x => `<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
+    concept.disabled = false;
+  }
+
+  const answerType = e.target.closest('.child-answer-type');
+  if (answerType) {
+    const kind = answerType.dataset.kind;
+    const index = answerType.dataset.index;
+    const options = document.querySelector(`.child-options[data-kind="${kind}"][data-index="${index}"]`);
+    const answer = document.querySelector(`.child-answer[data-kind="${kind}"][data-index="${index}"]`);
+    const isMcq = answerType.value === 'MCQ';
+
+    options?.classList.toggle('hidden', !isMcq);
+    options?.querySelectorAll('input').forEach(input => input.required = isMcq);
+    if (answer) answer.placeholder = isMcq ? 'A / B / C / D' : 'Enter answer';
+  }
+});
+
+function readChildQuestion(kind, index) {
+  const arr = childStateArray(kind);
+  const item = arr[index] || {skills:[],traps:[]};
+
+  const text = document.querySelector(`.child-q-text[data-kind="${kind}"][data-index="${index}"]`)?.value.trim() || '';
+  const answerType = document.querySelector(`.child-answer-type[data-kind="${kind}"][data-index="${index}"]`)?.value || '';
+  const answer = document.querySelector(`.child-answer[data-kind="${kind}"][data-index="${index}"]`)?.value.trim() || '';
+
+  const topic = document.querySelector(`.child-topic[data-kind="${kind}"][data-index="${index}"]`)?.value || '';
+  const subtopic = document.querySelector(`.child-subtopic[data-kind="${kind}"][data-index="${index}"]`)?.value || '';
+  const concept = document.querySelector(`.child-concept[data-kind="${kind}"][data-index="${index}"]`)?.value || '';
+
+  const difficulty = document.querySelector(`.child-difficulty[data-kind="${kind}"][data-index="${index}"]`)?.value || '';
+  const attempt = document.querySelector(`.child-attempt[data-kind="${kind}"][data-index="${index}"]`)?.value || '';
+
+  const min = Number(document.querySelector(`.child-min[data-kind="${kind}"][data-index="${index}"]`)?.value);
+  const target = Number(document.querySelector(`.child-target[data-kind="${kind}"][data-index="${index}"]`)?.value);
+  const max = Number(document.querySelector(`.child-max[data-kind="${kind}"][data-index="${index}"]`)?.value);
+
+  const primary = document.querySelector(`.child-primary-solution[data-kind="${kind}"][data-index="${index}"]`)?.value.trim() || '';
+  const alternate = document.querySelector(`.child-alternate-solution[data-kind="${kind}"][data-index="${index}"]`)?.value.trim() || '';
+  const insight = document.querySelector(`.child-key-insight[data-kind="${kind}"][data-index="${index}"]`)?.value.trim() || '';
+  const shortcut = document.querySelector(`.child-shortcut[data-kind="${kind}"][data-index="${index}"]`)?.value.trim() || '';
+  const mistake = document.querySelector(`.child-common-mistake[data-kind="${kind}"][data-index="${index}"]`)?.value.trim() || '';
+
+  const options = {};
+  ['A','B','C','D'].forEach(k => {
+    options[k] = document.querySelector(`.child-opt[data-kind="${kind}"][data-index="${index}"][data-opt="${k}"]`)?.value.trim() || '';
+  });
+
+  return {
+    text, answerType, answer, options,
+    topic, subtopic, concept, difficulty, attempt,
+    min, target, max, primary, alternate, insight, shortcut, mistake,
+    skills: [...(item.skills || [])],
+    traps: [...(item.traps || [])]
+  };
+}
+
+async function validateChildQuestion(child, label) {
+  if (!child.text) throw new Error(`${label}: question text is required.`);
+  if (!child.answerType) throw new Error(`${label}: answer type is required.`);
+  if (child.answerType === 'MCQ') {
+    if (!['A','B','C','D'].includes(child.answer.toUpperCase())) {
+      throw new Error(`${label}: correct answer must be A, B, C or D.`);
+    }
+    for (const k of ['A','B','C','D']) {
+      if (!child.options[k]) throw new Error(`${label}: option ${k} is required.`);
+    }
+  } else if (!child.answer) {
+    throw new Error(`${label}: correct answer is required.`);
+  }
+
+  if (!child.topic || !child.subtopic || !child.concept) {
+    throw new Error(`${label}: topic, sub-topic and concept are required.`);
+  }
+  if (!child.difficulty || !child.attempt) {
+    throw new Error(`${label}: difficulty and attempt worthiness are required.`);
+  }
+  if (!(child.min > 0 && child.target > 0 && child.max > 0 && child.min <= child.target && child.target <= child.max)) {
+    throw new Error(`${label}: time must satisfy Minimum ≤ Target ≤ Maximum.`);
+  }
+  if (!child.primary) throw new Error(`${label}: primary solution is required.`);
+  if (child.skills.length > 3) throw new Error(`${label}: maximum 3 skills are allowed.`);
+}
+
+function questionTypeFor(section, structure) {
+  if (section === 'QA') return 'Quantitative Aptitude';
+  if (section === 'DILR') return 'Logical Reasoning';
+  if (structure === 'rc_question') return 'Reading Comprehension';
+  return 'Verbal Ability';
+}
+
+async function insertQuestionGraph({ qid, child, structure, groupColumn, groupId }) {
+  const {data:userData} = await sb.auth.getUser();
+
+  const row = {
+    question_id: qid,
+    exam: 'CAT',
+    exam_year: Number($('year').value),
+    slot: Number($('slot').value),
+    section: state.section,
+    content_structure: structure,
+    question_type: questionTypeFor(state.section, structure),
+    answer_type: child.answerType,
+    question_text: child.text,
+    source: 'PYQ',
+    topic_id: Number(child.topic) || null,
+    subtopic_id: Number(child.subtopic) || null,
+    concept_id: Number(child.concept) || null,
+    difficulty: child.difficulty,
+    min_expected_time: child.min,
+    target_time: child.target,
+    max_expected_time: child.max,
+    attempt_worthiness: child.attempt,
+    correct_answer: child.answer.toUpperCase(),
+    created_by: userData.user?.id || null
+  };
+
+  row[groupColumn] = groupId;
+
+  const {data:q, error} = await sb.from('questions').insert(row).select('id').single();
+  if (error) throw error;
+
+  if (child.answerType === 'MCQ') {
+    const opts = ['A','B','C','D'].map((k,i) => ({
+      question_id: q.id,
+      option_key: k,
+      option_text: child.options[k],
+      display_order: i + 1
+    }));
+
+    const {error:oe} = await sb.from('question_options').insert(opts);
+    if (oe) throw oe;
+  }
+
+  if (child.skills.length) {
+    const {error:se} = await sb.from('question_skills').insert(
+      child.skills.map(skill_id => ({question_id:q.id, skill_id}))
+    );
+    if (se) throw se;
+  }
+
+  if (child.traps.length) {
+    const {error:te} = await sb.from('question_traps').insert(
+      child.traps.map(trap_type_id => ({question_id:q.id, trap_type_id}))
+    );
+    if (te) throw te;
+  }
+
+  const {error:so} = await sb.from('question_solutions').insert({
+    question_id: q.id,
+    primary_solution: child.primary,
+    alternate_solution: child.alternate || null,
+    key_insight: child.insight || null,
+    shortcut: child.shortcut || null,
+    common_mistake: child.mistake || null
+  });
+  if (so) throw so;
+
+  return q.id;
+}
+
+function makeGroupId(prefix, year, slot) {
+  const stamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).slice(2, 7).toUpperCase();
+  return `${prefix}${year}_S${slot}_${stamp}_${random}`;
+}
+
+async function saveDilrSet(year, slot) {
+  const count = Number($('setQuestionCount').value) || 0;
+  if (count < 1 || count > 20) throw new Error('Enter between 1 and 20 DILR set questions.');
+
+  const setId = makeGroupId('DILRSET', year, slot);
+  const {data:userData} = await sb.auth.getUser();
+
+  const setRow = {
+    set_id: setId,
+    exam: 'CAT',
+    exam_year: Number(year),
+    slot: Number(slot),
+    content_structure: 'set_question',
+    set_type: $('setType').value.trim() || null,
+    title: $('setTitle').value.trim() || null,
+    instructions: $('setInstructions').value.trim() || null,
+    question_count: count,
+    source: 'PYQ',
+    created_by: userData.user?.id || null
+  };
+
+  const {error:setError} = await sb.from('dilr_sets').insert(setRow);
+  if (setError) throw setError;
+
+  const childIds = [];
+
+  try {
+    for (let i = 0; i < count; i++) {
+      const child = readChildQuestion('set', i);
+      await validateChildQuestion(child, `Set Question ${i + 1}`);
+      const qid = await getNextId('DILR', year, slot);
+      await insertQuestionGraph({
+        qid,
+        child,
+        structure: 'set_question',
+        groupColumn: 'dilr_set_id',
+        groupId: setId
       });
-
-    });
-}
-function removeRcQuestions(){const x=$('rcQuestions');if(x)x.remove();}
-function getEditor(id){return $(id).innerHTML.trim();}
-async function getNextId(section,year,slot){
-  const {data,error}=await sb.rpc('next_question_number',{p_exam:'CAT',p_year:Number(year),p_slot:Number(slot),p_section:section});
-  if(error) throw error;
-  return `CAT${year}_S${slot}_${section}_${String(data).padStart(3,'0')}`;
-}
-async function uploadVisual(questionId){
-  const f=$('visualFile').files[0]; if(!f)return null;
-  const ext=f.name.split('.').pop().toLowerCase(); const path=`${state.section}/${questionId}/visual.${ext}`;
-  const {error}=await sb.storage.from('QUESTIONS-VISUALS').upload(path,f,{upsert:true,contentType:f.type});
-  if(error)throw error;
-  return {visual_type:$('visualType').value,storage_path:path,caption:$('visualCaption').value||null,file_size_bytes:f.size,mime_type:f.type};
-}
-
-async function checkDuplicateQuestion(questionText) {
-
-  const normalizedText = normalizeQuestionText(questionText);
-
-  if (!normalizedText) {
-    return false;
+      childIds.push(qid);
+    }
+  } catch (err) {
+    /* Parent cleanup prevents an empty/orphaned set if a child fails. */
+    await sb.from('dilr_sets').delete().eq('set_id', setId);
+    throw err;
   }
 
-  const { data, error } = await sb
-    .from('questions')
-    .select('id, question_id, question_text')
-    .eq('section', state.section)
-    .eq('content_structure', state.structure);
+  return {setId, childIds};
+}
 
-  if (error) {
-    console.error('Duplicate check error:', error);
-    throw error;
+async function saveRcPassage(year, slot) {
+  const count = Number($('rcQuestionCount').value) || 0;
+  if (count < 1 || count > 20) throw new Error('Enter between 1 and 20 RC questions.');
+
+  const passageText = $('passageEditor').innerText.trim();
+  if (!passageText) throw new Error('RC passage is required.');
+
+  const passageId = makeGroupId('RCPASSAGE', year, slot);
+  const {data:userData} = await sb.auth.getUser();
+
+  const wordCount = (passageText.match(/\S+/g) || []).length;
+
+  const passageRow = {
+    passage_id: passageId,
+    exam: 'CAT',
+    exam_year: Number(year),
+    slot: Number(slot),
+    title: $('passageTitle').value.trim() || null,
+    passage_text: passageText,
+    word_count: wordCount,
+    domain: $('passageDomain').value.trim(),
+    complexity: $('passageComplexity').value.trim() || null,
+    source: 'PYQ',
+    created_by: userData.user?.id || null
+  };
+
+  const {error:passageError} = await sb.from('rc_passages').insert(passageRow);
+  if (passageError) throw passageError;
+
+  const childIds = [];
+
+  try {
+    for (let i = 0; i < count; i++) {
+      const child = readChildQuestion('rc', i);
+      await validateChildQuestion(child, `RC Question ${i + 1}`);
+      const qid = await getNextId('VARC', year, slot);
+      await insertQuestionGraph({
+        qid,
+        child,
+        structure: 'rc_question',
+        groupColumn: 'rc_passage_id',
+        groupId: passageId
+      });
+      childIds.push(qid);
+    }
+  } catch (err) {
+    await sb.from('rc_passages').delete().eq('passage_id', passageId);
+    throw err;
   }
 
-  return (data || []).find(row =>
-    normalizeQuestionText(row.question_text) === normalizedText
-  ) || null;
+  return {passageId, childIds};
 }
 
+"""
+text = text[:start] + new_group_ui + text[end:]
 
-function normalizeQuestionText(text) {
+# Replace the entire submit handler
+submit_start = text.index("$('questionForm').addEventListener('submit'")
+reset_start = text.index("$('resetAll').addEventListener", submit_start)
 
-  return String(text || '')
-    .replace(/<[^>]*>/g, ' ')   // remove HTML
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/\s+/g, ' ')       // collapse spaces
-    .trim()
-    .toLowerCase();
-}
-$('questionForm').addEventListener('submit',async e=>{
-  e.preventDefault(); $('saveMessage').textContent='Saving…';
-  try{
-    const year=$('year').value,slot=$('slot').value;
-    if(!year||!slot)throw new Error('Select year and slot.');
-    const min=Number($('minTime').value),target=Number($('targetTime').value),max=Number($('maxTime').value);
-    if(!(min<=target&&target<=max))throw new Error('Time must satisfy Minimum ≤ Target ≤ Maximum.');
-const skills = [...state.selectedSkills];
-const traps = [...state.selectedTraps];
+new_submit = r"""$('questionForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('saveMessage').textContent = 'Saving…';
+  $('diagError').textContent = '';
 
-if (skills.length > 3) {
-  throw new Error(
-    'A question can have a maximum of 3 skills.'
-  );
-}
+  try {
+    const year = $('year').value;
+    const slot = $('slot').value;
+
+    if (!year || !slot) throw new Error('Select year and slot.');
+
+    /* -----------------------------------------------
+       DILR SET
+       ----------------------------------------------- */
+    if (state.structure === 'set_question') {
+      const result = await saveDilrSet(year, slot);
+
+      $('saveMessage').textContent =
+        `Saved DILR set ${result.setId} with ${result.childIds.length} questions successfully.`;
+
+      state.setQuestions = [];
+      $('setQuestionCount').value = '';
+      $('setQuestionList').innerHTML = '';
+      return;
+    }
+
+    /* -----------------------------------------------
+       RC PASSAGE
+       ----------------------------------------------- */
+    if (state.structure === 'rc_question') {
+      const result = await saveRcPassage(year, slot);
+
+      $('saveMessage').textContent =
+        `Saved RC passage ${result.passageId} with ${result.childIds.length} questions successfully.`;
+
+      state.rcQuestions = [];
+      $('rcQuestionCount').value = '';
+      $('rcQuestionList').innerHTML = '';
+      return;
+    }
+
+    /* -----------------------------------------------
+       REGULAR QUESTION
+       ----------------------------------------------- */
+    const min = Number($('minTime').value);
+    const target = Number($('targetTime').value);
+    const max = Number($('maxTime').value);
+
+    if (!(min <= target && target <= max)) {
+      throw new Error('Time must satisfy Minimum ≤ Target ≤ Maximum.');
+    }
+
+    const skills = [...state.selectedSkills];
+    const traps = [...state.selectedTraps];
+
+    if (skills.length > 3) {
+      throw new Error('A question can have a maximum of 3 skills.');
+    }
+
     const questionText = getEditor('questionEditor');
 
-if (!questionText) {
-  throw new Error('Question text is required.');
-}
+    if (!questionText) {
+      throw new Error('Question text is required.');
+    }
 
-// Check for an existing identical regular question
-let duplicate = null;
+    /* Duplicate protection applies only to regular questions. */
+    let duplicate = null;
 
-const regularStructures = [
-  'standalone',
-  'standalone_visual',
-  'va_standalone'
-];
+    const regularStructures = [
+      'standalone',
+      'standalone_visual',
+      'va_standalone'
+    ];
 
-if (regularStructures.includes(state.structure)) {
-  duplicate = await checkDuplicateQuestion(questionText);
-}
+    if (regularStructures.includes(state.structure)) {
+      duplicate = await checkDuplicateQuestion(questionText);
+    }
 
-if (duplicate) {
+    if (duplicate) {
+      const saveDuplicate = confirm(
+        `Duplicate question detected.\n\n` +
+        `Existing Question ID: ${duplicate.question_id}\n\n` +
+        `An identical question already exists in the question bank.\n\n` +
+        `Press OK to save another duplicate question.\n` +
+        `Press Cancel to start over.`
+      );
 
-  const saveDuplicate = confirm(
-    `Duplicate question detected.\n\n` +
-    `Existing Question ID: ${duplicate.question_id}\n\n` +
-    `An identical question already exists in the question bank.\n\n` +
-    `Press OK to save another duplicate question.\n` +
-    `Press Cancel to start over.`
-  );
+      if (!saveDuplicate) {
+        $('saveMessage').textContent =
+          'Duplicate question not saved. Form reset.';
 
-  if (!saveDuplicate) {
+        $('questionEditor').innerHTML = '';
+        state.selectedSkills = [];
+        state.selectedTraps = [];
+        renderSkillsDropdown();
+        renderTrapsDropdown();
+        return;
+      }
+    }
+
+    const answerType =
+      document.querySelector('input[name="answerType"]:checked').value;
+
+    if (
+      answerType === 'MCQ' &&
+      !['A','B','C','D'].includes(
+        $('correctAnswer').value.trim().toUpperCase()
+      )
+    ) {
+      throw new Error(
+        'Correct answer must be A, B, C or D for MCQ.'
+      );
+    }
+
+    if (answerType === 'TITA' && !$('correctAnswer').value.trim()) {
+      throw new Error('Correct answer is required for TITA.');
+    }
+
+    const qid = await getNextId(state.section, year, slot);
+    $('questionIdPreview').value = qid;
+
+    const {data:userData} = await sb.auth.getUser();
+
+    const row = {
+      question_id: qid,
+      exam: 'CAT',
+      exam_year: Number(year),
+      slot: Number(slot),
+      section: state.section,
+      content_structure: state.structure,
+      question_type:
+        state.section === 'QA'
+          ? 'Quantitative Aptitude'
+          : state.section === 'DILR'
+            ? 'Logical Reasoning'
+            : state.structure === 'rc_question'
+              ? 'Reading Comprehension'
+              : 'Verbal Ability',
+      answer_type: answerType,
+      question_text: questionText,
+      source: 'PYQ',
+      topic_id: Number($('topic').value) || null,
+      subtopic_id: Number($('subtopic').value) || null,
+      concept_id: Number($('concept').value) || null,
+      difficulty: $('difficulty').value,
+      min_expected_time: min,
+      target_time: target,
+      max_expected_time: max,
+      attempt_worthiness: $('attemptWorthiness').value,
+      solution_approach: $('solutionApproach').value || null,
+      correct_answer: $('correctAnswer').value.trim(),
+      created_by: userData.user?.id || null
+    };
+
+    const {data:q, error} =
+      await sb.from('questions').insert(row).select('id').single();
+
+    if (error) throw error;
+
+    const questionPk = q.id;
+
+    if (answerType === 'MCQ') {
+      const opts = ['A','B','C','D'].map((k,i) => ({
+        question_id: questionPk,
+        option_key: k,
+        option_text: $(`opt${k}`).value.trim(),
+        display_order: i + 1
+      }));
+
+      const {error:oe} =
+        await sb.from('question_options').insert(opts);
+
+      if (oe) throw oe;
+    }
+
+    if (skills.length) {
+      const {error:se} =
+        await sb.from('question_skills').insert(
+          skills.map(skill_id => ({
+            question_id: questionPk,
+            skill_id
+          }))
+        );
+
+      if (se) throw se;
+    }
+
+    if (traps.length) {
+      const {error:te} =
+        await sb.from('question_traps').insert(
+          traps.map(trap_type_id => ({
+            question_id: questionPk,
+            trap_type_id
+          }))
+        );
+
+      if (te) throw te;
+    }
+
+    const {error:so} =
+      await sb.from('question_solutions').insert({
+        question_id: questionPk,
+        primary_solution: getEditor('primarySolution'),
+        alternate_solution:
+          getEditor('alternateSolution') || null,
+        key_insight:
+          $('keyInsight').value || null,
+        shortcut:
+          $('shortcut').value || null,
+        common_mistake:
+          $('commonMistake').value || null
+      });
+
+    if (so) throw so;
+
+    if (state.structure === 'standalone_visual') {
+      const visual = await uploadVisual(qid);
+
+      if (!visual) {
+        throw new Error(
+          'Visual is required for Standalone + Visual.'
+        );
+      }
+
+      visual.question_id = questionPk;
+
+      const {error:ve} =
+        await sb.from('question_visuals').insert(visual);
+
+      if (ve) throw ve;
+    }
 
     $('saveMessage').textContent =
-      'Duplicate question not saved. Form reset.';
-
-    $('questionForm').reset();
+      `Saved ${qid} successfully.`;
 
     state.selectedSkills = [];
     state.selectedTraps = [];
@@ -1458,779 +961,41 @@ if (duplicate) {
     renderSkillsDropdown();
     renderTrapsDropdown();
 
-    $('questionEditor').innerHTML = '';
-
-    return;
-  }
-}
-    
-    const answerType=document.querySelector('input[name="answerType"]:checked').value;
-    if(answerType==='MCQ' && !['A','B','C','D'].includes($('correctAnswer').value.trim().toUpperCase()))throw new Error('Correct answer must be A, B, C or D for MCQ.');
-    const qid=await getNextId(state.section,year,slot);
-    $('questionIdPreview').value=qid;
-    const {data:userData}=await sb.auth.getUser();
-    let row={question_id:qid,exam:'CAT',exam_year:Number(year),slot:Number(slot),section:state.section,content_structure:state.structure,question_type:state.section==='QA'?'Quantitative Aptitude':state.section==='DILR'?'Logical Reasoning':state.structure==='rc_question'?'Reading Comprehension':'Verbal Ability',answer_type:answerType,question_text:questionText,source:'PYQ',topic_id:Number($('topic').value)||null,subtopic_id:Number($('subtopic').value)||null,concept_id:Number($('concept').value)||null,difficulty:$('difficulty').value,min_expected_time:min,target_time:target,max_expected_time:max,attempt_worthiness:$('attemptWorthiness').value,solution_approach:$('solutionApproach').value||null,correct_answer:$('correctAnswer').value.trim(),created_by:userData.user?.id||null};
-    const {data:q,error}=await sb.from('questions').insert(row).select('id').single(); if(error)throw error;
-    const questionPk=q.id;
-    if(answerType==='MCQ'){
-      const opts=['A','B','C','D'].map((k,i)=>({question_id:questionPk,option_key:k,option_text:$(`opt${k}`).value.trim(),display_order:i+1}));
-      const {error:oe}=await sb.from('question_options').insert(opts);if(oe)throw oe;
-    }
-    if(skills.length){
-  const {error:se}=await sb
-    .from('question_skills')
-    .insert(
-      skills.map(skill_id=>({
-        question_id:questionPk,
-        skill_id
-      }))
-    );
-
-  if(se)throw se;
-}
-
-if(traps.length){
-  const {error:te}=await sb
-    .from('question_traps')
-    .insert(
-      traps.map(trap_type_id=>({
-        question_id:questionPk,
-        trap_type_id
-      }))
-    );
-
-  if(te)throw te;
-}
-
-const {error:so}=await sb
-  .from('question_solutions')
-  .insert({
-    question_id:questionPk,
-    primary_solution:getEditor('primarySolution'),
-    alternate_solution:getEditor('alternateSolution')||null,
-    key_insight:$('keyInsight').value||null,
-    shortcut:$('shortcut').value||null,
-    common_mistake:$('commonMistake').value||null
-  });
-
-if(so)throw so;
-    if(state.structure==='standalone_visual'){
-      const visual=await uploadVisual(qid);if(!visual)throw new Error('Visual is required for Standalone + Visual.');
-      visual.question_id=questionPk; const {error:ve}=await sb.from('question_visuals').insert(visual);if(ve)throw ve;
-    }
-$('saveMessage').textContent=`Saved ${qid} successfully.`;
-
-state.selectedSkills = [];
-state.selectedTraps = [];
-
-renderSkillsDropdown();
-renderTrapsDropdown();
-  }catch(err){console.error(err);$('saveMessage').textContent=err.message||'Could not save question.';}
-});
-$('resetAll').addEventListener('click',()=>location.reload());
-$('logout').addEventListener('click',async()=>{await sb.auth.signOut();location.href='index.html';});
-/* =========================================================
-   ANALYTICS
-   ========================================================= */
-
-let analyticsRows = [];
-let analyticsTopics = [];
-let analyticsCharts = {};
-
-
-/* ---------- View switching ---------- */
-
-let inAnalytics = false;
-
-$('tabAnalytics').addEventListener('click', async () => {
-  inAnalytics = !inAnalytics;
-
-  if (inAnalytics) {
-    $('dashboard').classList.add('hidden');
-    $('analyticsView').classList.remove('hidden');
-    $('tabAnalytics').textContent = 'Question Manager';
-    $('tabAnalytics').classList.add('active');
-    await loadAnalytics();
-  } else {
-    $('analyticsView').classList.add('hidden');
-    $('dashboard').classList.remove('hidden');
-    $('tabAnalytics').textContent = 'Analytics';
-    $('tabAnalytics').classList.remove('active');
+  } catch (err) {
+    console.error(err);
+    $('saveMessage').textContent =
+      err.message || 'Could not save question.';
   }
 });
 
-
-/* ---------- Analytics years ---------- */
-
-function setAnalyticsYears(){
-
-  const yearSelect = $('aYear');
-
-  if(!yearSelect) return;
-
-  yearSelect.innerHTML =
-    '<option value="">All Years</option>';
-
-  for(let y = 2025; y >= 2020; y--){
-
-    yearSelect.insertAdjacentHTML(
-      'beforeend',
-      `<option value="${y}">${y}</option>`
-    );
-
-  }
-
-}
-
-
-/* ---------- Load questions + topics ---------- */
-
-async function loadAnalytics(){
-
-  $('analyticsStatus').textContent =
-    'Loading question bank…';
-
-
-  const [
-    questionsResult,
-    topicsResult
-  ] = await Promise.all([
-
-    sb
-      .from('questions')
-      .select(`
-        id,
-        question_id,
-        exam_year,
-        slot,
-        section,
-        content_structure,
-        source,
-        topic_id,
-        difficulty,
-        attempt_worthiness,
-        min_expected_time,
-        target_time,
-        max_expected_time,
-        solution_approach
-      `),
-
-    sb
-      .from('topics')
-      .select('id,name,section')
-      .order('name')
-
-  ]);
-
-
-  if(questionsResult.error){
-
-    console.error(
-      'Analytics question error:',
-      questionsResult.error
-    );
-
-    $('analyticsStatus').textContent =
-      'Unable to load questions: ' +
-      questionsResult.error.message;
-
-    return;
-
-  }
-
-
-  if(topicsResult.error){
-
-    console.error(
-      'Analytics topic error:',
-      topicsResult.error
-    );
-
-    $('analyticsStatus').textContent =
-      'Unable to load topics: ' +
-      topicsResult.error.message;
-
-    return;
-
-  }
-
-
-  analyticsRows =
-    questionsResult.data || [];
-
-  analyticsTopics =
-    topicsResult.data || [];
-
-
-  populateAnalyticsTopics();
-
-  renderAnalytics();
-
-}
-
-
-/* ---------- Topic filter ---------- */
-
-function populateAnalyticsTopics(){
-
-  const section =
-    $('aSection').value;
-
-  const topicList =
-    analyticsTopics.filter(topic =>
-      !section ||
-      topic.section === section
-    );
-
-
-  $('aTopic').innerHTML =
-    '<option value="">All Topics</option>' +
-
-    topicList.map(topic => `
-      <option value="${topic.id}">
-        ${escapeHtml(topic.name)}
-      </option>
-    `).join('');
-
-}
-
-
-/* ---------- Filtering ---------- */
-
-function getFilteredAnalyticsRows(){
-
-  const section =
-    $('aSection').value;
-
-  const year =
-    $('aYear').value;
-
-  const slot =
-    $('aSlot').value;
-
-  const structure =
-    $('aStructure').value;
-
-  const topic =
-    $('aTopic').value;
-
-  const difficulty =
-    $('aDifficulty').value;
-
-  const source =
-    $('aSource').value;
-
-
-  return analyticsRows.filter(row => {
-
-    if(section &&
-       row.section !== section)
-      return false;
-
-    if(year &&
-       String(row.exam_year) !== year)
-      return false;
-
-    if(slot &&
-       String(row.slot) !== slot)
-      return false;
-
-    if(structure &&
-       row.content_structure !== structure)
-      return false;
-
-    if(topic &&
-       String(row.topic_id) !== topic)
-      return false;
-
-    if(difficulty &&
-       row.difficulty !== difficulty)
-      return false;
-
-    if(source &&
-       row.source !== source)
-      return false;
-
-    return true;
-
-  });
-
-}
-
-
-/* ---------- Count helper ---------- */
-
-function analyticsCounts(rows,key,order){
-
-  const counts = {};
-
-  rows.forEach(row => {
-
-    const value =
-      row[key] || 'Unknown';
-
-    counts[value] =
-      (counts[value] || 0) + 1;
-
-  });
-
-
-  const labels =
-    order.filter(label =>
-      counts[label] !== undefined
-    );
-
-
-  const values =
-    labels.map(label =>
-      counts[label]
-    );
-
-
-  return {
-    labels,
-    values
-  };
-
-}
-
-
-/* ---------- Chart ---------- */
-
-function drawAnalyticsChart(
-  canvasId,
-  type,
-  labels,
-  values
-){
-
-  if(analyticsCharts[canvasId]){
-
-    analyticsCharts[canvasId].destroy();
-
-  }
-
-
-  const canvas =
-    $(canvasId);
-
-  if(!canvas) return;
-
-
-  analyticsCharts[canvasId] =
-    new Chart(
-      canvas,
-      {
-        type,
-
-        data:{
-          labels,
-
-          datasets:[
-            {
-              data:values,
-
-              backgroundColor:[
-                '#0B2A5B',
-                '#64748B',
-                '#94A3B8',
-                '#CBD5E1',
-                '#F97316',
-                '#E2E8F0'
-              ],
-
-              borderColor:'#FFFFFF',
-
-              borderWidth:1
-            }
-          ]
-        },
-
-        options:{
-          responsive:true,
-
-          maintainAspectRatio:false,
-
-          plugins:{
-            legend:{
-              display:type !== 'bar',
-              position:'bottom'
-            }
-          },
-
-          scales:
-            type === 'bar'
-              ? {
-                  y:{
-                    beginAtZero:true,
-
-                    ticks:{
-                      precision:0
-                    }
-                  }
-                }
-              : undefined
-
-        }
-
-      }
-    );
-
-}
-
-
-/* ---------- Main analytics renderer ---------- */
-
-function renderAnalytics(){
-
-  const rows =
-    getFilteredAnalyticsRows();
-
-
-  $('analyticsStatus').textContent =
-    `Showing ${rows.length} of ${analyticsRows.length} questions`;
-
-
-  /* KPI */
-
-  $('aTotal').textContent =
-    rows.length;
-
-
-  $('aQA').textContent =
-    rows.filter(row =>
-      row.section === 'QA'
-    ).length;
-
-
-  $('aDILR').textContent =
-    rows.filter(row =>
-      row.section === 'DILR'
-    ).length;
-
-
-  $('aVARC').textContent =
-    rows.filter(row =>
-      row.section === 'VARC'
-    ).length;
-
-
-  /* Year */
-
-  let result =
-    analyticsCounts(
-      rows,
-      'exam_year',
-      [
-        '2020',
-        '2021',
-        '2022',
-        '2023',
-        '2024',
-        '2025'
-      ]
-    );
-
-
-  drawAnalyticsChart(
-    'aYearChart',
-    'bar',
-    result.labels,
-    result.values
-  );
-
-
-  /* Section */
-
-  result =
-    analyticsCounts(
-      rows,
-      'section',
-      [
-        'QA',
-        'DILR',
-        'VARC'
-      ]
-    );
-
-
-  drawAnalyticsChart(
-    'aSectionChart',
-    'doughnut',
-    result.labels,
-    result.values
-  );
-
-
-  /* Difficulty */
-
-  result =
-    analyticsCounts(
-      rows,
-      'difficulty',
-      [
-        'Easy',
-        'Moderate',
-        'Difficult'
-      ]
-    );
-
-
-  drawAnalyticsChart(
-    'aDifficultyChart',
-    'doughnut',
-    result.labels,
-    result.values
-  );
-
-
-  /* Structure */
-
-  result =
-    analyticsCounts(
-      rows,
-      'content_structure',
-      [
-        'standalone',
-        'standalone_visual',
-        'set_question',
-        'va_standalone',
-        'rc_question'
-      ]
-    );
-
-
-  drawAnalyticsChart(
-    'aStructureChart',
-    'bar',
-    result.labels,
-    result.values
-  );
-
-
-  renderTopicCoverage(rows);
-
-  renderAnalyticsChecks(rows);
-
-}
-
-
-/* ---------- Topic coverage ---------- */
-
-function renderTopicCoverage(rows){
-
-  const counts = {};
-
-
-  rows.forEach(row => {
-
-    const topic =
-      analyticsTopics.find(
-        item =>
-          String(item.id) ===
-          String(row.topic_id)
-      );
-
-
-    const name =
-      topic?.name ||
-      'Unassigned';
-
-
-    counts[name] =
-      (counts[name] || 0) + 1;
-
-  });
-
-
-  const entries =
-    Object.entries(counts)
-      .sort((a,b) => b[1] - a[1]);
-
-
-  if(!entries.length){
-
-    $('aTopicTable').innerHTML = `
-      <div class="text-sm"
-           style="color:var(--body-text)">
-        No questions match the current filters.
-      </div>
-    `;
-
-    return;
-
-  }
-
-
-  const max =
-    Math.max(
-      ...entries.map(
-        entry => entry[1]
-      )
-    );
-
-
-  $('aTopicTable').innerHTML =
-    entries.map(
-      ([name,count]) => {
-
-        const width =
-          max
-            ? (count / max) * 100
-            : 0;
-
-
-        return `
-          <div class="flex items-center gap-3 mb-3">
-
-            <div class="w-40 text-sm font-medium truncate"
-                 title="${escapeHtml(name)}">
-              ${escapeHtml(name)}
-            </div>
-
-            <div class="analytics-bar flex-1">
-              <div style="width:${width}%"></div>
-            </div>
-
-            <div class="w-8 text-right text-sm font-bold">
-              ${count}
-            </div>
-
-          </div>
-        `;
-
-      }
-    ).join('');
-
-}
-
-
-/* ---------- Data quality checks ---------- */
-
-function renderAnalyticsChecks(rows){
-
-  const checks = [
-
-    {
-      name:'Missing topic',
-      count:rows.filter(row =>
-        !row.topic_id
-      ).length
-    },
-
-    {
-      name:'Missing difficulty',
-      count:rows.filter(row =>
-        !row.difficulty
-      ).length
-    },
-
-    {
-      name:'Missing attempt worthiness',
-      count:rows.filter(row =>
-        !row.attempt_worthiness
-      ).length
-    },
-
-    {
-      name:'Missing solution approach',
-      count:rows.filter(row =>
-        !row.solution_approach ||
-        !row.solution_approach.trim()
-      ).length
-    },
-
-    {
-      name:'Incomplete time data',
-      count:rows.filter(row =>
-        !(Number(row.min_expected_time) > 0) ||
-        !(Number(row.target_time) > 0) ||
-        !(Number(row.max_expected_time) > 0)
-      ).length
-    }
-
-  ];
-
-
-  $('aChecks').innerHTML =
-    checks.map(check => {
-
-      const good =
-        check.count === 0;
-
-
-      return `
-        <div class="flex items-center justify-between
-                    p-3 rounded-xl bg-slate-50">
-
-          <span class="text-sm font-medium">
-            ${check.name}
-          </span>
-
-          <span
-            class="badge"
-            style="
-              background:${good ? '#ECFDF5' : '#FFF7ED'};
-              color:${good ? '#047857' : '#C2410C'};
-            "
-          >
-            ${check.count}
-            ${check.count === 1 ? 'issue' : 'issues'}
-          </span>
-
-        </div>
-      `;
-
-    }).join('');
-
-}
-
-
-/* ---------- Analytics filters ---------- */
-
-[
-  'aSection',
-  'aYear',
-  'aSlot',
-  'aStructure',
-  'aTopic',
-  'aDifficulty',
-  'aSource'
-
-].forEach(id => {
-
-  $(id).addEventListener(
-    'change',
-    () => {
-
-      if(id === 'aSection'){
-
-        populateAnalyticsTopics();
-
-      }
-
-      renderAnalytics();
-
-    }
-  );
-
-});
-
-
-/* ---------- Refresh ---------- */
-
-$('refreshAnalytics')
-  .addEventListener(
-    'click',
-    loadAnalytics
-  );
-
-
-/* ---------- Initialize analytics years ---------- */
-
-setAnalyticsYears();
-  
-init();
-</script>
-</body>
-</html>
+"""
+text = text[:submit_start] + new_submit + text[reset_start:]
+
+# Fix setMeta placement: set questions should follow setMeta, already done.
+# Make group metadata required where appropriate in UI
+text = text.replace(
+    '<div><label class="label">Set title</label><input id="setTitle" class="input"></div>',
+    '<div><label class="label required">Set title</label><input id="setTitle" class="input" required></div>'
+)
+text = text.replace(
+    '<div><label class="label">Set type</label><input id="setType" class="input"></div>',
+    '<div><label class="label">Set type</label><input id="setType" class="input"></div>'
+)
+
+# RC domain already required. Add title optional remains.
+
+# Add reset of group metadata after successful group save? Keep values for possible next set; better clear question cards only.
+# Add a note in UI after RC passage label
+text = text.replace(
+    '<div class="section-title mb-5">RC passage</div>',
+    '<div class="section-title mb-2">RC passage</div><div class="text-sm text-slate-500 mb-5">The passage is stored once; every RC question below is stored separately and linked to this passage.</div>'
+)
+text = text.replace(
+    '<div class="section-title mb-5">Set information</div>',
+    '<div class="section-title mb-2">Set information</div><div class="text-sm text-slate-500 mb-5">The set is stored once; every question below is stored separately and linked to this DILR set.</div>'
+)
+
+out = Path("/mnt/data/chaloprep-question-manager-updated.html")
+out.write_text(text, encoding="utf-8")
+print(f"Created: {out}")
+print(f"Size: {out.stat().st_size} bytes")
