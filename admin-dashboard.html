@@ -311,7 +311,7 @@
           </div>
         </section>
 
-        <section class="card p-6">
+        <section id="globalDiagnostics" class="card p-6">
           <div class="section-title mb-5">Diagnostics</div>
           <div class="grid md:grid-cols-4 gap-4">
             <div><label class="label required">Difficulty</label><select id="difficulty" class="input" required><option value="">Select</option><option>Easy</option><option>Moderate</option><option>Difficult</option></select></div>
@@ -1085,6 +1085,10 @@ function chooseStructure(v){
 
   $('questionForm').classList.remove('hidden');
 
+  /* =====================================================
+     GROUP / PASSAGE METADATA
+     ===================================================== */
+
   $('setMeta').classList.toggle(
     'hidden',
     v !== 'set_question'
@@ -1095,31 +1099,75 @@ function chooseStructure(v){
     v !== 'rc_question'
   );
 
+  /* =====================================================
+     VISUAL
+     ===================================================== */
+
   $('visualWrap').classList.toggle(
     'hidden',
     v !== 'standalone_visual'
   );
 
-  /*
-   * RC Passage has its OWN question fields.
-   * Therefore the normal Question section must disappear.
-   */
+  /* =====================================================
+     GLOBAL QUESTION SECTIONS
+     
+     These are ONLY for standalone questions.
+     DILR Set and RC Passage have their own child
+     question fields, including taxonomy + diagnostics
+     + solutions.
+     ===================================================== */
+
+  const isGroupedQuestion =
+    v === 'set_question' ||
+    v === 'rc_question';
+
   $('questionCore').classList.toggle(
-  'hidden',
-  v === 'rc_question' || v === 'set_question'
-);
+    'hidden',
+    isGroupedQuestion
+  );
+
+  $('taxonomyWrap').classList.toggle(
+    'hidden',
+    isGroupedQuestion
+  );
+
+  $('globalDiagnostics').classList.toggle(
+    'hidden',
+    isGroupedQuestion
+  );
+
+  $('solutionWrap').classList.toggle(
+    'hidden',
+    isGroupedQuestion
+  );
+
+  /* =====================================================
+     CHILD QUESTION BUILDERS
+     ===================================================== */
 
   if(v === 'set_question'){
+
     buildSetQuestions();
+
   } else {
+
     removeSetQuestions();
+
   }
 
   if(v === 'rc_question'){
+
     buildRcQuestions();
+
   } else {
+
     removeRcQuestions();
+
   }
+
+  /* =====================================================
+     LOAD TAXONOMY
+     ===================================================== */
 
   loadTopics();
 }
