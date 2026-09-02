@@ -256,11 +256,10 @@
 
         <section id="rcMeta" class="card p-6 hidden">
           <div class="section-title mb-2">RC passage</div><div class="text-sm text-slate-500 mb-5">The passage is stored once; every RC question below is stored separately and linked to this passage.</div>
-          <div class="grid md:grid-cols-3 gap-4">
-            <div><label class="label">Passage title</label><input id="passageTitle" class="input"></div>
-            <div><label class="label required">Passage domain</label><input id="passageDomain" class="input"></div>
-            <div><label class="label">Passage complexity</label><input id="passageComplexity" class="input"></div>
-          </div>
+          <div>
+  <label class="label">Passage title</label>
+  <input id="passageTitle" class="input">
+</div>
           <div class="mt-4"><label class="label required">Passage</label><div id="passageEditor" class="editor" contenteditable="true"></div></div>
           <div class="mt-4 text-sm text-slate-500">Word count: <span id="wordCount">0</span></div>
         </section>
@@ -1822,18 +1821,16 @@ async function saveRcPassage(year, slot) {
   const wordCount = (passageText.match(/\S+/g) || []).length;
 
   const passageRow = {
-    passage_id: passageId,
-    exam: 'CAT',
-    exam_year: Number(year),
-    slot: Number(slot),
-    title: $('passageTitle').value.trim() || null,
-    passage_text: passageText,
-    word_count: wordCount,
-    domain: $('passageDomain').value.trim(),
-    complexity: $('passageComplexity').value.trim() || null,
-    source: 'PYQ',
-    created_by: userData.user?.id || null
-  };
+  passage_id: passageId,
+  exam: 'CAT',
+  exam_year: Number(year),
+  slot: Number(slot),
+  title: $('passageTitle').value.trim() || null,
+  passage_text: passageText,
+  word_count: wordCount,
+  source: 'PYQ',
+  created_by: userData.user?.id || null
+};
 
   const {error:passageError} = await sb.from('rc_passages').insert(passageRow);
   if (passageError) throw passageError;
