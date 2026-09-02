@@ -1308,7 +1308,7 @@ function childTaxonomyBlock(kind, index) {
     </div>
 
     <div class="mt-5">
-      <label class="label required">Primary solution</label>
+      <label class="label ">Primary solution</label>
       <textarea class="input min-h-24 child-primary-solution" data-kind="${kind}" data-index="${index}" required></textarea>
     </div>
 
@@ -1720,7 +1720,6 @@ async function validateChildQuestion(child, label) {
   if (!(child.min > 0 && child.target > 0 && child.max > 0 && child.min <= child.target && child.target <= child.max)) {
     throw new Error(`${label}: time must satisfy Minimum ≤ Target ≤ Maximum.`);
   }
-  if (!child.primary) throw new Error(`${label}: primary solution is required.`);
   if (child.skills.length > 3) throw new Error(`${label}: maximum 3 skills are allowed.`);
 }
 
