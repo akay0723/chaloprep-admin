@@ -247,7 +247,7 @@
         <section id="setMeta" class="card p-6 hidden">
           <div class="section-title mb-2">Set information</div><div class="text-sm text-slate-500 mb-5">The set is stored once; every question below is stored separately and linked to this DILR set.</div>
           <div class="grid md:grid-cols-3 gap-4">
-            <div><label class="label required">Number of questions</label><input id="setQuestionCount" type="number" min="1" max="20" class="input"></div>
+            <div><label class="label required">Number of questions</label><input id="setQuestionCount" type="number" min="1" class="input"></div>
             <div><label class="label required">Set title</label><input id="setTitle" class="input" required></div>
             <div><label class="label">Set type</label><input id="setType" class="input"></div>
           </div>
@@ -1069,6 +1069,30 @@ document.querySelectorAll('[data-section]').forEach(btn => {
 function structureHint(v){
   return ({standalone:'One independent question',standalone_visual:'One question with one visual',set_question:'Multiple linked questions in one DILR set',va_standalone:'Independent verbal ability question',rc_question:'One passage with linked RC questions'})[v];
 }
+function setGlobalRequired(enabled) {
+  const globalSections = [
+    'questionCore',
+    'taxonomyWrap',
+    'globalDiagnostics',
+    'solutionWrap'
+  ];
+
+  globalSections.forEach(sectionId => {
+    const section = $(sectionId);
+    if (!section) return;
+
+    section.querySelectorAll('[required]').forEach(el => {
+      el.required = enabled;
+    });
+  });
+
+  // Only standalone questions use the global answer-type/options fields.
+  // Do not let hidden grouped-question fields trigger browser validation.
+  if (enabled) {
+    updateAnswerType();
+  }
+}
+
 function chooseStructure(v){
 
   state.structure = v;
@@ -1120,6 +1144,10 @@ function chooseStructure(v){
   const isGroupedQuestion =
     v === 'set_question' ||
     v === 'rc_question';
+
+  // Global question fields are required for all standalone structures,
+  // but grouped DILR/RC structures use their own child-question fields.
+  setGlobalRequired(!isGroupedQuestion);
 
   $('questionCore').classList.toggle(
     'hidden',
@@ -1536,7 +1564,7 @@ function buildRcQuestions() {
     <div class="section-title mb-5">RC Questions</div>
     <div class="mb-5">
       <label class="label required">Number of questions</label>
-      <input id="rcQuestionCount" type="number" min="1" max="20"
+      <input id="rcQuestionCount" type="number" min="1"
              class="input md:w-64" placeholder="Enter number of questions">
     </div>
     <div id="rcQuestionList" class="space-y-6"></div>
