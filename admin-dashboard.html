@@ -1309,7 +1309,7 @@ function childTaxonomyBlock(kind, index) {
 
     <div class="mt-5">
       <label class="label ">Primary solution</label>
-      <textarea class="input min-h-24 child-primary-solution" data-kind="${kind}" data-index="${index}" required></textarea>
+      <textarea class="input min-h-24 child-primary-solution" data-kind="${kind}" data-index="${index}" ></textarea>
     </div>
 
     <div class="grid md:grid-cols-2 gap-3 mt-3">
@@ -1827,8 +1827,13 @@ async function saveDilrSet(year, slot) {
     created_by: userData.user?.id || null
   };
 
-  const {error:setError} = await sb.from('dilr_sets').insert(setRow);
-  if (setError) throw setError;
+  const {data:set, error:setError} = await sb
+  .from('dilr_sets')
+  .insert(setRow)
+  .select('id')
+  .single();
+
+if (setError) throw setError;
 
   const childIds = [];
 
@@ -1842,7 +1847,7 @@ async function saveDilrSet(year, slot) {
         child,
         structure: 'set_question',
         groupColumn: 'dilr_set_id',
-        groupId: setId
+        groupId: set.id
       });
       childIds.push(qid);
     }
@@ -1879,8 +1884,13 @@ async function saveRcPassage(year, slot) {
   created_by: userData.user?.id || null
 };
 
-  const {error:passageError} = await sb.from('rc_passages').insert(passageRow);
-  if (passageError) throw passageError;
+  const {data:passage, error:passageError} = await sb
+  .from('rc_passages')
+  .insert(passageRow)
+  .select('id')
+  .single();
+
+if (passageError) throw passageError;
 
   const childIds = [];
 
@@ -1894,12 +1904,12 @@ async function saveRcPassage(year, slot) {
         child,
         structure: 'rc_question',
         groupColumn: 'rc_passage_id',
-        groupId: passageId
+        groupId: passage.id
       });
       childIds.push(qid);
     }
   } catch (err) {
-    await sb.from('rc_passages').delete().eq('passage_id', passageId);
+    await sb.from('rc_passages').delete().eq('id', passage.id);
     throw err;
   }
 
